@@ -22,7 +22,8 @@ def get_weekly_sales():
         .all()
     )
 
-    days_of_week = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+    # weekday() retorna 0=Segunda, 1=Terça, ..., 6=Domingo
+    days_of_week = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
     sales_by_day = {day: 0 for day in days_of_week}
 
     for sale in sales:
