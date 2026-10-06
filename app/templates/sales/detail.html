@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Venda #{{ sale.id }} | Cafeteria Control{% endblock %}
 {% block content %}
-<div class="page-header"><div><h1>Venda #{{ sale.id }}</h1><p>{{ sale.sale_date.strftime('%d/%m/%Y %H:%M') }} · {{ sale.payment_method }}</p></div></div>
+<div class="page-header"><div><h1>Venda #{{ sale.id }}</h1><p>{{ sale.sale_date.strftime('%d/%m/%Y %H:%M') }} · {{ sale.payment_method }}{% if sale.is_generic %} · <span class="badge warning">Genérica</span>{% endif %}</p></div></div>
+{% if sale.is_generic %}
+<section class="panel">
+    <p><strong>Descrição:</strong> {{ sale.description or '-' }}</p>
+    <div class="totals"><span>Total <strong>R$ {{ '%.2f'|format(sale.total) }}</strong></span><span>Custo <strong>R$ {{ '%.2f'|format(sale.cost_total) }}</strong></span><span>Lucro bruto <strong>R$ {{ '%.2f'|format(sale.gross_profit) }}</strong></span></div>
+</section>
+{% else %}
 <section class="panel"><table><thead><tr><th>Produto</th><th>Qtd.</th><th>Preço</th><th>Custo</th><th>Subtotal</th></tr></thead><tbody>
 {% for item in sale.items %}<tr><td>{{ item.product.name }}</td><td>{{ item.quantity|number_format }}</td><td>R$ {{ '%.2f'|format(item.unit_price) }}</td><td>R$ {{ '%.2f'|format(item.unit_cost) }}</td><td>R$ {{ '%.2f'|format(item.subtotal) }}</td></tr>{% endfor %}
 </tbody></table><div class="totals"><span>Total <strong>R$ {{ '%.2f'|format(sale.total) }}</strong></span><span>Custo <strong>R$ {{ '%.2f'|format(sale.cost_total) }}</strong></span><span>Lucro bruto <strong>R$ {{ '%.2f'|format(sale.gross_profit) }}</strong></span></div></section>
+{% endif %}
 {% endblock %}

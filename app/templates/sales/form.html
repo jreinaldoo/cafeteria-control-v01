@@ -3,24 +3,47 @@
 {% block content %}
 <div class="page-header"><div><h1>{% if sale %}Editar venda #{{ sale.id }}{% else %}Nova venda{% endif %}</h1><p>Registre os itens e a forma de pagamento.</p></div></div>
 <form method="post" class="panel" id="sale-form">
-<div id="sale-items">
-{% if sale %}
-  {% for item in sale.items %}
-  <div class="sale-row">
-  <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}" {% if product.id == item.product_id %}selected{% endif %}>{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
-  <input name="quantity[]" type="number" min="0.001" step="0.001" value="{{ item.quantity }}" required>
-  <button class="btn small danger-outline remove-row" type="button">Remover</button>
-  </div>
-  {% endfor %}
-{% else %}
-  <div class="sale-row">
-  <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}">{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
-  <input name="quantity[]" type="number" min="0.001" step="0.001" value="1" required>
-  <button class="btn small danger-outline remove-row" type="button">Remover</button>
-  </div>
-{% endif %}
+{% if not sale %}
+<div class="form-actions">
+    <label>
+        <input type="radio" name="sale_type" value="products" checked onchange="toggleSaleType()">
+        Venda com produtos
+    </label>
+    <label>
+        <input type="radio" name="sale_type" value="generic" onchange="toggleSaleType()">
+        Venda genérica (sem produtos)
+    </label>
 </div>
-<div class="form-actions"><button class="btn" type="button" id="add-sale-row">+ Adicionar produto</button></div>
+{% endif %}
+
+<div id="products-section">
+    <h3>Itens da venda</h3>
+    <div id="sale-items">
+    {% if sale %}
+      {% for item in sale.items %}
+      <div class="sale-row">
+      <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}" {% if product.id == item.product_id %}selected{% endif %}>{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
+      <input name="quantity[]" type="number" min="0.001" step="0.001" value="{{ item.quantity }}" required>
+      <button class="btn small danger-outline remove-row" type="button">Remover</button>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="sale-row">
+      <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}">{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
+      <input name="quantity[]" type="number" min="0.001" step="0.001" value="1" required>
+      <button class="btn small danger-outline remove-row" type="button">Remover</button>
+      </div>
+    {% endif %}
+    </div>
+    <div class="form-actions"><button class="btn" type="button" id="add-sale-row">+ Adicionar produto</button></div>
+</div>
+
+<div id="generic-section" style="display: none;">
+    <h3>Venda genérica</h3>
+    <label>Descrição<input name="description" type="text" placeholder="Ex: Venda avulsa, gorjeta, etc." required></label>
+    <label>Valor total (R$)<input name="total" type="number" min="0.01" step="0.01" placeholder="0.00" required></label>
+</div>
+
 <label>Data da venda<input name="sale_date" type="date" id="sale-date" value="{% if sale %}{{ sale.sale_date.strftime('%Y-%m-%d') }}{% endif %}" required></label>
 <label class="payment-label">Forma de pagamento<select name="payment_method" required><option value="PIX" {% if sale and sale.payment_method == 'PIX' %}selected{% endif %}>Pix</option><option value="SUMUP" {% if sale and sale.payment_method == 'SUMUP' %}selected{% endif %}>SumUp</option></select></label>
 <div class="form-actions"><a class="btn" href="{{ url_for('sales.index') }}">Cancelar</a><button class="btn primary" type="submit">{% if sale %}Atualizar venda{% else %}Registrar venda{% endif %}</button></div>
@@ -31,6 +54,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('sale-date').value = today;
 });
+
+function toggleSaleType() {
+    const saleType = document.querySelector('input[name="sale_type"]:checked').value;
+    const productsSection = document.getElementById('products-section');
+    const genericSection = document.getElementById('generic-section');
+
+    if (saleType === 'products') {
+        productsSection.style.display = 'block';
+        genericSection.style.display = 'none';
+    } else {
+        productsSection.style.display = 'none';
+        genericSection.style.display = 'block';
+    }
+}
 </script>
 {% endif %}
 {% endblock %}

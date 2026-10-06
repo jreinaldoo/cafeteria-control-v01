@@ -11,12 +11,16 @@ class Sale(db.Model):
     sale_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     payment_method = db.Column(db.String(20), nullable=False)
     total = db.Column(db.Numeric(10, 2), nullable=False, default=Decimal("0.00"))
+    description = db.Column(db.String(255), nullable=True)
+    is_generic = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     items = db.relationship("SaleItem", back_populates="sale", cascade="all, delete-orphan")
 
     @property
     def cost_total(self):
+        if self.is_generic:
+            return Decimal("0.00")
         return sum((Decimal(item.unit_cost) * item.quantity for item in self.items), Decimal("0.00"))
 
     @property
