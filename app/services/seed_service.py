@@ -29,6 +29,13 @@ def seed_initial_data():
             db.session.add(category)
         categories[category_name] = category
 
+    # Criar categoria para vendas avulsas
+    if "Outros" not in categories:
+        outros_category = Category(name="Outros")
+        db.session.add(outros_category)
+        db.session.flush()
+        categories["Outros"] = outros_category
+
     db.session.flush()
 
     for category_name, name, cost, price in INITIAL_PRODUCTS:
@@ -42,5 +49,17 @@ def seed_initial_data():
                 min_stock=Decimal("0"),
             )
         )
+
+    # Criar produto genérico para vendas avulsas
+    db.session.add(
+        Product(
+            category=categories["Outros"],
+            name="Venda avulsa",
+            cost=Decimal("0.00"),
+            sale_price=Decimal("0.00"),
+            stock_quantity=Decimal("999999"),
+            min_stock=Decimal("0"),
+        )
+    )
 
     db.session.commit()
