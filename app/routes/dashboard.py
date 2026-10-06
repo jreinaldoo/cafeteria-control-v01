@@ -12,13 +12,17 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 
 def get_weekly_sales():
-    """Vendas por dia da semana (últimos 7 dias) separadas por tipo de pagamento"""
+    """Vendas por dia da semana (semana atual: segunda a domingo) separadas por tipo de pagamento"""
     now = datetime.now()
-    week_ago = now - timedelta(days=6)
-    day_start = datetime.combine(week_ago.date(), time.min)
+    # Encontrar segunda-feira da semana atual
+    weekday = now.weekday()  # 0=Segunda, 6=Domingo
+    week_start = now - timedelta(days=weekday)
+    day_start = datetime.combine(week_start.date(), time.min)
+    # Domingo às 23:59:59
+    week_end = day_start + timedelta(days=6, hours=23, minutes=59, seconds=59)
 
     sales = (
-        Sale.query.filter(Sale.sale_date >= day_start)
+        Sale.query.filter(Sale.sale_date >= day_start, Sale.sale_date <= week_end)
         .all()
     )
 
