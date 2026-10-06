@@ -5,7 +5,7 @@ from flask import Blueprint, render_template
 from sqlalchemy import func
 
 from app import db
-from app.models import Product, Sale, SaleItem
+from app.models import Product, Sale, SaleItem, Purchase
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -106,6 +106,56 @@ def get_6month_sales():
     return labels, pix_values, sumup_values
 
 
+def get_monthly_purchases():
+    """Compras por dia (último mês)"""
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    day_start = datetime.combine(month_ago.date(), time.min)
+
+    purchases = Purchase.query.filter(Purchase.purchase_date >= day_start).all()
+
+    purchases_by_date = {}
+    for purchase in purchases:
+        purchase_date = purchase.purchase_date if hasattr(purchase.purchase_date, 'strftime') else purchase.purchase_date
+        date_str = purchase_date.strftime("%d/%m")
+        purchases_by_date[date_str] = purchases_by_date.get(date_str, 0) + float(purchase.total)
+
+    labels = []
+    values = []
+    for date_str in sorted(purchases_by_date.keys()):
+        labels.append(date_str)
+        values.append(purchases_by_date[date_str])
+
+    return labels, values
+
+
+def get_6month_purchases():
+    """Compras por mês (últimos 6 meses)"""
+    now = datetime.now()
+    six_months_ago = now - timedelta(days=180)
+    day_start = datetime.combine(six_months_ago.date(), time.min)
+
+    purchases = Purchase.query.filter(Purchase.purchase_date >= day_start).all()
+
+    months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    purchases_by_month = {}
+
+    for purchase in purchases:
+        purchase_date = purchase.purchase_date if hasattr(purchase.purchase_date, 'year') else purchase.purchase_date
+        year = purchase_date.year
+        month = purchase_date.month
+        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
+        purchases_by_month[label] = purchases_by_month.get(label, 0) + float(purchase.total)
+
+    labels = []
+    values = []
+    for label in sorted(purchases_by_month.keys()):
+        labels.append(label)
+        values.append(purchases_by_month[label])
+
+    return labels, values
+
+
 @dashboard_bp.get("/")
 def index():
     now = datetime.now()
@@ -166,6 +216,10 @@ def index():
     monthly_labels, monthly_pix, monthly_sumup = get_monthly_sales()
     six_month_labels, six_month_pix, six_month_sumup = get_6month_sales()
 
+    # Dados para gráficos de compras
+    monthly_purchase_labels, monthly_purchase_values = get_monthly_purchases()
+    six_month_purchase_labels, six_month_purchase_values = get_6month_purchases()
+
     return render_template(
         "dashboard.html",
         today_revenue=today_revenue,
@@ -188,4 +242,8 @@ def index():
         six_month_labels=six_month_labels,
         six_month_pix=six_month_pix,
         six_month_sumup=six_month_sumup,
+        monthly_purchase_labels=monthly_purchase_labels,
+        monthly_purchase_values=monthly_purchase_values,
+        six_month_purchase_labels=six_month_purchase_labels,
+        six_month_purchase_values=six_month_purchase_values,
     )

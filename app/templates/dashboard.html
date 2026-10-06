@@ -72,6 +72,20 @@
     {% else %}<p class="muted">Nenhum produto com estoque mínimo configurado em alerta.</p>{% endif %}
 </section>
 
+<section class="panel">
+    <div class="panel-header">
+        <h2>Compras por período</h2>
+        <div class="chart-filters">
+            <button class="btn small" onclick="showPurchaseChart('monthly')" id="btn-purchase-monthly">Último mês</button>
+            <button class="btn small" onclick="showPurchaseChart('sixmonth')" id="btn-purchase-sixmonth">Últimos 6 meses</button>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="purchaseMonthlyChart"></canvas>
+        <canvas id="purchaseSixmonthChart" style="display: none;"></canvas>
+    </div>
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
@@ -84,8 +98,13 @@ const monthlySumup = {{ monthly_sumup | tojson }};
 const sixMonthLabels = {{ six_month_labels | tojson }};
 const sixMonthPix = {{ six_month_pix | tojson }};
 const sixMonthSumup = {{ six_month_sumup | tojson }};
+const monthlyPurchaseLabels = {{ monthly_purchase_labels | tojson }};
+const monthlyPurchaseValues = {{ monthly_purchase_values | tojson }};
+const sixMonthPurchaseLabels = {{ six_month_purchase_labels | tojson }};
+const sixMonthPurchaseValues = {{ six_month_purchase_values | tojson }};
 
 let weeklyChart, monthlyChart, sixMonthChart;
+let purchaseMonthlyChart, purchaseSixmonthChart;
 
 function createCharts() {
     Chart.register(ChartDataLabels);
@@ -221,6 +240,73 @@ function createCharts() {
     });
 
     document.getElementById('btn-weekly').classList.add('primary');
+
+    // Purchase charts
+    const purchaseOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            datalabels: {
+                display: true,
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                formatter: function(value) {
+                    return 'R$ ' + value.toFixed(2);
+                },
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                color: '#26221f'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    };
+
+    purchaseMonthlyChart = new Chart(document.getElementById('purchaseMonthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthlyPurchaseLabels,
+            datasets: [{
+                label: 'Compras',
+                data: monthlyPurchaseValues,
+                backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                borderColor: 'rgba(249, 115, 22, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: purchaseOptions
+    });
+
+    purchaseSixmonthChart = new Chart(document.getElementById('purchaseSixmonthChart'), {
+        type: 'bar',
+        data: {
+            labels: sixMonthPurchaseLabels,
+            datasets: [{
+                label: 'Compras',
+                data: sixMonthPurchaseValues,
+                backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                borderColor: 'rgba(249, 115, 22, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: purchaseOptions
+    });
+
+    document.getElementById('btn-purchase-monthly').classList.add('primary');
 }
 
 function showChart(chartType) {
@@ -234,6 +320,22 @@ function showChart(chartType) {
 
     document.getElementById(chartType + 'Chart').style.display = 'block';
     document.getElementById('btn-' + chartType).classList.add('primary');
+}
+
+function showPurchaseChart(chartType) {
+    document.getElementById('purchaseMonthlyChart').style.display = 'none';
+    document.getElementById('purchaseSixmonthChart').style.display = 'none';
+
+    document.getElementById('btn-purchase-monthly').classList.remove('primary');
+    document.getElementById('btn-purchase-sixmonth').classList.remove('primary');
+
+    if (chartType === 'monthly') {
+        document.getElementById('purchaseMonthlyChart').style.display = 'block';
+        document.getElementById('btn-purchase-monthly').classList.add('primary');
+    } else if (chartType === 'sixmonth') {
+        document.getElementById('purchaseSixmonthChart').style.display = 'block';
+        document.getElementById('btn-purchase-sixmonth').classList.add('primary');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', createCharts);
