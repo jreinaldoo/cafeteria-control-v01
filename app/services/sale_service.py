@@ -23,7 +23,7 @@ def create_sale(items, payment_method, sale_date=None):
         total = Decimal("0.00")
         for item in items:
             product = db.session.get(Product, int(item["product_id"]))
-            quantity = Decimal(str(item["quantity"]))
+            quantity = Decimal(str(int(item["quantity"])))
             if not product or not product.active:
                 raise ValueError("Produto inválido ou inativo.")
             if quantity <= 0:
@@ -79,7 +79,7 @@ def update_sale(sale_id, items, payment_method, sale_date=None):
         total = Decimal("0.00")
         for item in items:
             product = db.session.get(Product, int(item["product_id"]))
-            quantity = Decimal(str(item["quantity"]))
+            quantity = Decimal(str(int(item["quantity"])))
             if not product or not product.active:
                 raise ValueError("Produto inválido ou inativo.")
             if quantity <= 0:

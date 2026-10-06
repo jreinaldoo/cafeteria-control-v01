@@ -9,7 +9,7 @@ from app.services.stock_service import move_stock
 def create_purchase(product_id, quantity, unit_cost, supplier=None, purchase_date=None):
     try:
         product = db.session.get(Product, int(product_id))
-        quantity = Decimal(str(quantity))
+        quantity = Decimal(str(int(quantity)))
         unit_cost = Decimal(str(unit_cost))
 
         if not product:
@@ -53,7 +53,7 @@ def update_purchase(purchase_id, product_id, quantity, unit_cost, supplier=None,
             raise ValueError("Compra não encontrada.")
 
         product = db.session.get(Product, int(product_id))
-        quantity = Decimal(str(quantity))
+        quantity = Decimal(str(int(quantity)))
         unit_cost = Decimal(str(unit_cost))
 
         if not product:

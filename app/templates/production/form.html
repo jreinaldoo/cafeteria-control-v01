@@ -22,7 +22,7 @@
                     <option value="{{ product.id }}" {% if product.id == item.product_id %}selected{% endif %}>{{ product.name }} ({{ product.category.name }})</option>
                     {% endfor %}
                 </select>
-                <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" value="{{ item.quantity_produced }}" required>
+                <input name="quantity[]" type="number" min="1" step="1" placeholder="Quantidade" value="{{ item.quantity_produced }}" required>
                 <button class="btn small danger-outline remove-row" type="button">Remover</button>
             </div>
             {% endfor %}
@@ -33,7 +33,7 @@
                     <option value="{{ product.id }}">{{ product.name }} ({{ product.category.name }})</option>
                     {% endfor %}
                 </select>
-                <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" required>
+                <input name="quantity[]" type="number" min="1" step="1" placeholder="Quantidade" required>
                 <button class="btn small danger-outline remove-row" type="button">Remover</button>
             </div>
         {% endif %}
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <option value="{{ product.id }}">{{ product.name }} ({{ product.category.name }})</option>
                 {% endfor %}
             </select>
-            <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" required>
+            <input name="quantity[]" type="number" min="1" step="1" placeholder="Quantidade" required>
             <button class="btn small danger-outline remove-row" type="button">Remover</button>
         `;
         container.appendChild(newRow);

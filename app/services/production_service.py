@@ -16,7 +16,7 @@ def create_production(production_date, items, notes=None):
 
         for item in items:
             product = db.session.get(Product, int(item["product_id"]))
-            quantity = Decimal(str(item["quantity"]))
+            quantity = Decimal(str(int(item["quantity"])))
             if not product or not product.active:
                 raise ValueError("Produto inválido ou inativo.")
             if quantity <= 0:
@@ -106,7 +106,7 @@ def update_production(production_id, items, notes=None):
         # Adicionar novos itens
         for item in items:
             product = db.session.get(Product, int(item["product_id"]))
-            quantity = Decimal(str(item["quantity"]))
+            quantity = Decimal(str(int(item["quantity"])))
             if not product or not product.active:
                 raise ValueError("Produto inválido ou inativo.")
             if quantity <= 0:

@@ -8,14 +8,14 @@
   {% for item in sale.items %}
   <div class="sale-row">
   <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}" {% if product.id == item.product_id %}selected{% endif %}>{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
-  <input name="quantity[]" type="number" min="0.001" step="0.001" value="{{ item.quantity }}" required>
+  <input name="quantity[]" type="number" min="1" step="1" value="{{ item.quantity }}" required>
   <button class="btn small danger-outline remove-row" type="button">Remover</button>
   </div>
   {% endfor %}
 {% else %}
   <div class="sale-row">
   <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}">{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
-  <input name="quantity[]" type="number" min="0.001" step="0.001" value="1" required>
+  <input name="quantity[]" type="number" min="1" step="1" value="1" required>
   <button class="btn small danger-outline remove-row" type="button">Remover</button>
   </div>
 {% endif %}
@@ -30,6 +30,27 @@
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('sale-date').value = today;
+
+    document.getElementById('add-sale-row').addEventListener('click', function() {
+        const container = document.getElementById('sale-items');
+        const newRow = document.createElement('div');
+        newRow.className = 'sale-row';
+        newRow.innerHTML = `
+            <select name="product_id[]" required>{% for product in products %}<option value="{{ product.id }}">{{ product.name }} — R$ {{ '%.2f'|format(product.sale_price) }} (estoque: {{ product.stock_quantity|number_format }})</option>{% endfor %}</select>
+            <input name="quantity[]" type="number" min="1" step="1" value="1" required>
+            <button class="btn small danger-outline remove-row" type="button">Remover</button>
+        `;
+        container.appendChild(newRow);
+    });
+
+    document.getElementById('sale-items').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-row')) {
+            const rows = document.querySelectorAll('.sale-row');
+            if (rows.length > 1) {
+                e.target.closest('.sale-row').remove();
+            }
+        }
+    });
 });
 </script>
 {% endif %}
