@@ -48,8 +48,15 @@ def get_monthly_sales():
     """Vendas por dia (último mês) separadas por tipo de pagamento"""
     now = datetime.now()
     month_ago = now - timedelta(days=30)
-    day_start = datetime.combine(month_ago.date(), time.min)
 
+    # Gerar todos os dias dos últimos 30 dias sequencialmente
+    labels = []
+    for i in range(29, -1, -1):
+        day_date = now - timedelta(days=i)
+        labels.append(day_date.strftime("%d/%m"))
+
+    # Buscar vendas e agrupar por data
+    day_start = datetime.combine(month_ago.date(), time.min)
     sales = Sale.query.filter(Sale.sale_date >= day_start).all()
 
     pix_by_date = {}
@@ -57,21 +64,32 @@ def get_monthly_sales():
 
     for sale in sales:
         sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
-        date_str = sale_date.strftime("%d/%m")
         if sale.payment_method == "PIX":
-            pix_by_date[date_str] = pix_by_date.get(date_str, 0) + float(sale.total)
+            pix_by_date[sale_date] = pix_by_date.get(sale_date, 0) + float(sale.total)
         elif sale.payment_method == "SUMUP":
-            sumup_by_date[date_str] = sumup_by_date.get(date_str, 0) + float(sale.total)
+            sumup_by_date[sale_date] = sumup_by_date.get(sale_date, 0) + float(sale.total)
 
-    labels = []
+    # Preencher valores para cada dia
     pix_values = []
     sumup_values = []
+    for i in range(29, -1, -1):
+        day_date = now - timedelta(days=i)
+        day_start_date = datetime.combine(day_date.date(), time.min)
+        day_end_date = datetime.combine(day_date.date(), time.max)
 
-    all_dates = sorted(set(list(pix_by_date.keys()) + list(sumup_by_date.keys())))
-    for date_str in all_dates:
-        labels.append(date_str)
-        pix_values.append(pix_by_date.get(date_str, 0))
-        sumup_values.append(sumup_by_date.get(date_str, 0))
+        day_pix = 0
+        day_sumup = 0
+        for sale_date, total in pix_by_date.items():
+            sale_dt = sale_date if isinstance(sale_date, datetime) else datetime.combine(sale_date, time.min)
+            if day_start_date <= sale_dt <= day_end_date:
+                day_pix += total
+        for sale_date, total in sumup_by_date.items():
+            sale_dt = sale_date if isinstance(sale_date, datetime) else datetime.combine(sale_date, time.min)
+            if day_start_date <= sale_dt <= day_end_date:
+                day_sumup += total
+
+        pix_values.append(day_pix)
+        sumup_values.append(day_sumup)
 
     total = sum(pix_values) + sum(sumup_values)
     return labels, pix_values, sumup_values, total
@@ -80,34 +98,54 @@ def get_monthly_sales():
 def get_6month_sales():
     """Vendas por mês (últimos 6 meses) separadas por tipo de pagamento"""
     now = datetime.now()
+    months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+
+    # Gerar os últimos 6 meses sequencialmente
+    labels = []
+    for i in range(5, -1, -1):
+        month_date = now - timedelta(days=30 * i)
+        year = month_date.year
+        month = month_date.month
+        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
+        labels.append(label)
+
+    # Buscar vendas e agrupar por mês
     six_months_ago = now - timedelta(days=180)
     day_start = datetime.combine(six_months_ago.date(), time.min)
-
     sales = Sale.query.filter(Sale.sale_date >= day_start).all()
 
-    months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
     pix_by_month = {}
     sumup_by_month = {}
 
     for sale in sales:
         sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
-        year = sale_date.year
-        month = sale_date.month
-        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
         if sale.payment_method == "PIX":
-            pix_by_month[label] = pix_by_month.get(label, 0) + float(sale.total)
+            pix_by_month[sale_date] = pix_by_month.get(sale_date, 0) + float(sale.total)
         elif sale.payment_method == "SUMUP":
-            sumup_by_month[label] = sumup_by_month.get(label, 0) + float(sale.total)
+            sumup_by_month[sale_date] = sumup_by_month.get(sale_date, 0) + float(sale.total)
 
-    labels = []
+    # Preencher valores para cada mês
     pix_values = []
     sumup_values = []
+    for i in range(5, -1, -1):
+        month_date = now - timedelta(days=30 * i)
+        month_start = datetime(month_date.year, month_date.month, 1)
+        month_end = datetime(month_date.year, month_date.month, 1) + timedelta(days=32)
+        month_end = month_end.replace(day=1) - timedelta(days=1)
 
-    all_months = sorted(set(list(pix_by_month.keys()) + list(sumup_by_month.keys())))
-    for label in all_months:
-        labels.append(label)
-        pix_values.append(pix_by_month.get(label, 0))
-        sumup_values.append(sumup_by_month.get(label, 0))
+        month_pix = 0
+        month_sumup = 0
+        for sale_date, total in pix_by_month.items():
+            sale_dt = sale_date if isinstance(sale_date, datetime) else datetime.combine(sale_date, time.min)
+            if month_start <= sale_dt <= month_end:
+                month_pix += total
+        for sale_date, total in sumup_by_month.items():
+            sale_dt = sale_date if isinstance(sale_date, datetime) else datetime.combine(sale_date, time.min)
+            if month_start <= sale_dt <= month_end:
+                month_sumup += total
+
+        pix_values.append(month_pix)
+        sumup_values.append(month_sumup)
 
     total = sum(pix_values) + sum(sumup_values)
     return labels, pix_values, sumup_values, total
@@ -117,8 +155,17 @@ def get_monthly_purchases():
     """Compras por dia (último mês)"""
     now = datetime.now()
     month_ago = now - timedelta(days=30)
-    day_start = datetime.combine(month_ago.date(), time.min)
 
+    # Gerar todos os dias dos últimos 30 dias sequencialmente
+    labels = []
+    values = []
+    for i in range(29, -1, -1):
+        day_date = now - timedelta(days=i)
+        labels.append(day_date.strftime("%d/%m"))
+        values.append(0)
+
+    # Buscar compras e agrupar por data
+    day_start = datetime.combine(month_ago.date(), time.min)
     purchases = Purchase.query.filter(Purchase.purchase_date >= day_start).all()
 
     purchases_by_date = {}
@@ -126,11 +173,19 @@ def get_monthly_purchases():
         purchase_date = purchase.purchase_date if hasattr(purchase.purchase_date, 'strftime') else purchase.purchase_date
         purchases_by_date[purchase_date] = purchases_by_date.get(purchase_date, 0) + float(purchase.total)
 
-    labels = []
-    values = []
-    for purchase_date in sorted(purchases_by_date.keys()):
-        labels.append(purchase_date.strftime("%d/%m"))
-        values.append(purchases_by_date[purchase_date])
+    # Preencher valores para cada dia
+    for i in range(29, -1, -1):
+        day_date = now - timedelta(days=i)
+        day_start_date = datetime.combine(day_date.date(), time.min)
+        day_end_date = datetime.combine(day_date.date(), time.max)
+
+        day_total = 0
+        for purchase_date, total in purchases_by_date.items():
+            purchase_dt = purchase_date if isinstance(purchase_date, datetime) else datetime.combine(purchase_date, time.min)
+            if day_start_date <= purchase_dt <= day_end_date:
+                day_total += total
+
+        values[29 - i] = day_total
 
     total = sum(values, 0)
     return labels, values, total
@@ -139,26 +194,42 @@ def get_monthly_purchases():
 def get_6month_purchases():
     """Compras por mês (últimos 6 meses)"""
     now = datetime.now()
+    months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+
+    # Gerar os últimos 6 meses sequencialmente
+    labels = []
+    values = []
+    for i in range(5, -1, -1):
+        month_date = now - timedelta(days=30 * i)
+        year = month_date.year
+        month = month_date.month
+        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
+        labels.append(label)
+
+    # Buscar compras e agrupar por mês
     six_months_ago = now - timedelta(days=180)
     day_start = datetime.combine(six_months_ago.date(), time.min)
-
     purchases = Purchase.query.filter(Purchase.purchase_date >= day_start).all()
 
-    months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
     purchases_by_month = {}
-
     for purchase in purchases:
         purchase_date = purchase.purchase_date if hasattr(purchase.purchase_date, 'year') else purchase.purchase_date
         purchases_by_month[purchase_date] = purchases_by_month.get(purchase_date, 0) + float(purchase.total)
 
-    labels = []
-    values = []
-    for purchase_date in sorted(purchases_by_month.keys()):
-        year = purchase_date.year
-        month = purchase_date.month
-        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
-        labels.append(label)
-        values.append(purchases_by_month[purchase_date])
+    # Preencher valores para cada mês
+    for i in range(5, -1, -1):
+        month_date = now - timedelta(days=30 * i)
+        month_start = datetime(month_date.year, month_date.month, 1)
+        month_end = datetime(month_date.year, month_date.month, 1) + timedelta(days=32)
+        month_end = month_end.replace(day=1) - timedelta(days=1)
+
+        month_total = 0
+        for purchase_date, total in purchases_by_month.items():
+            purchase_dt = purchase_date if isinstance(purchase_date, datetime) else datetime.combine(purchase_date, time.min)
+            if month_start <= purchase_dt <= month_end:
+                month_total += total
+
+        values.append(month_total)
 
     total = sum(values, 0)
     return labels, values, total
