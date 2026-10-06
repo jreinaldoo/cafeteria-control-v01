@@ -42,6 +42,11 @@
         <button class="btn" type="button" id="add-production-row">+ Adicionar item</button>
     </div>
 
+    <div class="totals" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Custo total <strong id="total-cost">R$ 0,00</strong></span>
+        <span>Valor de venda total <strong id="total-sale">R$ 0,00</strong></span>
+    </div>
+
     <div class="form-actions" style="margin-top: 24px;">
         <a class="btn" href="{% if production %}{{ url_for('production.detail', production_id=production.id) }}{% else %}{{ url_for('production.index') }}{% endif %}">Cancelar</a>
         <button class="btn primary" type="submit">{% if production %}Atualizar produção{% else %}Criar produção{% endif %}</button>
@@ -49,11 +54,19 @@
 </form>
 
 <script>
+const productsData = {
+    {% for product in products %}
+    {{ product.id }}: { cost: {{ product.cost }}, sale_price: {{ product.sale_price }} },
+    {% endfor %}
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     {% if not production %}
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('production-date').value = today;
     {% endif %}
+
+    updateTotals();
 
     document.getElementById('add-production-row').addEventListener('click', function() {
         const container = document.getElementById('production-items');
@@ -69,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="btn small danger-outline remove-row" type="button">Remover</button>
         `;
         container.appendChild(newRow);
+        updateTotals();
     });
 
     document.getElementById('production-items').addEventListener('click', function(e) {
@@ -76,9 +90,41 @@ document.addEventListener('DOMContentLoaded', function() {
             const rows = document.querySelectorAll('.production-row');
             if (rows.length > 1) {
                 e.target.closest('.production-row').remove();
+                updateTotals();
             }
         }
     });
+
+    document.getElementById('production-items').addEventListener('change', function(e) {
+        if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') {
+            updateTotals();
+        }
+    });
 });
+
+function updateTotals() {
+    const rows = document.querySelectorAll('.production-row');
+    let totalCost = 0;
+    let totalSale = 0;
+
+    rows.forEach(row => {
+        const select = row.querySelector('select');
+        const quantityInput = row.querySelector('input[type="number"]');
+
+        if (select && quantityInput) {
+            const productId = parseInt(select.value);
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const product = productsData[productId];
+
+            if (product) {
+                totalCost += product.cost * quantity;
+                totalSale += product.sale_price * quantity;
+            }
+        }
+    });
+
+    document.getElementById('total-cost').textContent = 'R$ ' + totalCost.toFixed(2);
+    document.getElementById('total-sale').textContent = 'R$ ' + totalSale.toFixed(2);
+}
 </script>
 {% endblock %}
