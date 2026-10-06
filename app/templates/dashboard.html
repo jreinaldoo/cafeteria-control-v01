@@ -71,6 +71,7 @@
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
 const weeklyLabels = {{ weekly_labels | tojson }};
 const weeklyPix = {{ weekly_pix | tojson }};
@@ -85,6 +86,8 @@ const sixMonthSumup = {{ six_month_sumup | tojson }};
 let weeklyChart, monthlyChart, sixMonthChart;
 
 function createCharts() {
+    Chart.register(ChartDataLabels);
+
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: true,
@@ -92,6 +95,25 @@ function createCharts() {
             legend: {
                 display: true,
                 position: 'top'
+            },
+            datalabels: {
+                display: function(context) {
+                    return context.datasetIndex === 1;
+                },
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                formatter: function(value, context) {
+                    const pix = context.chart.data.datasets[0].data[context.dataIndex];
+                    const sumup = context.chart.data.datasets[1].data[context.dataIndex];
+                    const total = pix + sumup;
+                    return 'R$ ' + total.toFixed(2);
+                },
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                color: '#26221f'
             }
         },
         scales: {
