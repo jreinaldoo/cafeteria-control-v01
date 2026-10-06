@@ -19,25 +19,16 @@ def new():
     products = Product.query.filter_by(active=True).order_by(Product.name).all()
     if request.method == "POST":
         try:
-            sale_type = request.form.get("sale_type")
-
-            if sale_type == "generic":
-                total = request.form.get("total")
-                description = request.form.get("description")
-                sale_date_str = request.form.get("sale_date")
-                sale_date = datetime.strptime(sale_date_str, "%Y-%m-%d") if sale_date_str else None
-                sale = create_sale([], request.form["payment_method"], sale_date, description, is_generic=True, total=total)
-            else:
-                product_ids = request.form.getlist("product_id[]")
-                quantities = request.form.getlist("quantity[]")
-                items = [
-                    {"product_id": product_id, "quantity": quantity}
-                    for product_id, quantity in zip(product_ids, quantities)
-                    if product_id and quantity
-                ]
-                sale_date_str = request.form.get("sale_date")
-                sale_date = datetime.strptime(sale_date_str, "%Y-%m-%d") if sale_date_str else None
-                sale = create_sale(items, request.form["payment_method"], sale_date)
+            product_ids = request.form.getlist("product_id[]")
+            quantities = request.form.getlist("quantity[]")
+            items = [
+                {"product_id": product_id, "quantity": quantity}
+                for product_id, quantity in zip(product_ids, quantities)
+                if product_id and quantity
+            ]
+            sale_date_str = request.form.get("sale_date")
+            sale_date = datetime.strptime(sale_date_str, "%Y-%m-%d") if sale_date_str else None
+            sale = create_sale(items, request.form["payment_method"], sale_date)
             flash(f"Venda #{sale.id} registrada: R$ {sale.total:.2f}.", "success")
             return redirect(url_for("sales.index"))
         except (ValueError, KeyError) as exc:
@@ -54,10 +45,6 @@ def detail(sale_id):
 @sales_bp.route("/<int:sale_id>/editar", methods=["GET", "POST"])
 def edit(sale_id):
     sale = Sale.query.get_or_404(sale_id)
-    if sale.is_generic:
-        flash("Não é possível editar vendas genéricas.", "error")
-        return redirect(url_for("sales.detail", sale_id=sale_id))
-
     products = Product.query.filter_by(active=True).order_by(Product.name).all()
     if request.method == "POST":
         try:
