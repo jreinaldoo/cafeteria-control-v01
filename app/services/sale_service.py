@@ -80,6 +80,8 @@ def update_sale(sale_id, items, payment_method, sale_date=None):
         sale = db.session.get(Sale, sale_id)
         if not sale:
             raise ValueError("Venda não encontrada.")
+        if sale.is_generic:
+            raise ValueError("Não é possível editar vendas genéricas.")
 
         # Reverter movimentações de estoque originais
         for item in sale.items:

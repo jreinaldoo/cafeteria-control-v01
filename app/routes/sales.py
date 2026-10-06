@@ -54,6 +54,10 @@ def detail(sale_id):
 @sales_bp.route("/<int:sale_id>/editar", methods=["GET", "POST"])
 def edit(sale_id):
     sale = Sale.query.get_or_404(sale_id)
+    if sale.is_generic:
+        flash("Não é possível editar vendas genéricas.", "error")
+        return redirect(url_for("sales.detail", sale_id=sale_id))
+
     products = Product.query.filter_by(active=True).order_by(Product.name).all()
     if request.method == "POST":
         try:
