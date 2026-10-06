@@ -84,6 +84,9 @@
         <canvas id="purchaseMonthlyChart"></canvas>
         <canvas id="purchaseSixmonthChart" style="display: none;"></canvas>
     </div>
+    <div class="totals" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Total do período <strong id="purchase-total">R$ 0,00</strong></span>
+    </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -102,6 +105,8 @@ const monthlyPurchaseLabels = {{ monthly_purchase_labels | tojson }};
 const monthlyPurchaseValues = {{ monthly_purchase_values | tojson }};
 const sixMonthPurchaseLabels = {{ six_month_purchase_labels | tojson }};
 const sixMonthPurchaseValues = {{ six_month_purchase_values | tojson }};
+const monthlyPurchaseTotal = {{ monthly_purchase_total | tojson }};
+const sixMonthPurchaseTotal = {{ six_month_purchase_total | tojson }};
 
 let weeklyChart, monthlyChart, sixMonthChart;
 let purchaseMonthlyChart, purchaseSixmonthChart;
@@ -307,6 +312,9 @@ function createCharts() {
     });
 
     document.getElementById('btn-purchase-monthly').classList.add('primary');
+
+    // Initialize purchase total
+    updatePurchaseTotal(monthlyPurchaseTotal);
 }
 
 function showChart(chartType) {
@@ -332,10 +340,16 @@ function showPurchaseChart(chartType) {
     if (chartType === 'monthly') {
         document.getElementById('purchaseMonthlyChart').style.display = 'block';
         document.getElementById('btn-purchase-monthly').classList.add('primary');
+        updatePurchaseTotal(monthlyPurchaseTotal);
     } else if (chartType === 'sixmonth') {
         document.getElementById('purchaseSixmonthChart').style.display = 'block';
         document.getElementById('btn-purchase-sixmonth').classList.add('primary');
+        updatePurchaseTotal(sixMonthPurchaseTotal);
     }
+}
+
+function updatePurchaseTotal(total) {
+    document.getElementById('purchase-total').textContent = 'R$ ' + total.toFixed(2);
 }
 
 document.addEventListener('DOMContentLoaded', createCharts);

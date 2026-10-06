@@ -125,7 +125,8 @@ def get_monthly_purchases():
         labels.append(purchase_date.strftime("%d/%m"))
         values.append(purchases_by_date[purchase_date])
 
-    return labels, values
+    total = sum(values, 0)
+    return labels, values, total
 
 
 def get_6month_purchases():
@@ -152,7 +153,8 @@ def get_6month_purchases():
         labels.append(label)
         values.append(purchases_by_month[purchase_date])
 
-    return labels, values
+    total = sum(values, 0)
+    return labels, values, total
 
 
 @dashboard_bp.get("/")
@@ -216,8 +218,8 @@ def index():
     six_month_labels, six_month_pix, six_month_sumup = get_6month_sales()
 
     # Dados para gráficos de compras
-    monthly_purchase_labels, monthly_purchase_values = get_monthly_purchases()
-    six_month_purchase_labels, six_month_purchase_values = get_6month_purchases()
+    monthly_purchase_labels, monthly_purchase_values, monthly_purchase_total = get_monthly_purchases()
+    six_month_purchase_labels, six_month_purchase_values, six_month_purchase_total = get_6month_purchases()
 
     return render_template(
         "dashboard.html",
@@ -243,6 +245,8 @@ def index():
         six_month_sumup=six_month_sumup,
         monthly_purchase_labels=monthly_purchase_labels,
         monthly_purchase_values=monthly_purchase_values,
+        monthly_purchase_total=monthly_purchase_total,
         six_month_purchase_labels=six_month_purchase_labels,
         six_month_purchase_values=six_month_purchase_values,
+        six_month_purchase_total=six_month_purchase_total,
     )
