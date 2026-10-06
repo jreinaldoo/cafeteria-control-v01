@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Visão rápida das vendas, custos, margem e estoque.</p>
+    </div>
+    <div class="actions">
+        <a class="btn primary" href="{{ url_for('sales.new') }}">+ Nova venda</a>
+        <a class="btn" href="{{ url_for('purchases.new') }}">+ Registrar compra</a>
+    </div>
+</div>
+
+<h2>Hoje</h2>
+<div class="cards">
+    <div class="card"><span>Vendas</span><strong>R$ {{ '%.2f'|format(today_revenue) }}</strong></div>
+    <div class="card"><span>Custo</span><strong>R$ {{ '%.2f'|format(today_cost) }}</strong></div>
+    <div class="card"><span>Lucro bruto</span><strong>R$ {{ '%.2f'|format(today_profit) }}</strong></div>
+</div>
+
+<h2>Este mês</h2>
+<div class="cards">
+    <div class="card"><span>Faturamento</span><strong>R$ {{ '%.2f'|format(month_revenue) }}</strong></div>
+    <div class="card"><span>Custo dos produtos</span><strong>R$ {{ '%.2f'|format(month_cost) }}</strong></div>
+    <div class="card"><span>Lucro bruto</span><strong>R$ {{ '%.2f'|format(month_profit) }}</strong></div>
+</div>
+
+<div class="grid-2">
+<section class="panel">
+    <div class="panel-header"><h2>Mais vendidos no mês</h2><a href="{{ url_for('sales.index') }}">Ver vendas</a></div>
+    {% if top_products %}
+    <table><thead><tr><th>Produto</th><th>Quantidade</th></tr></thead><tbody>
+    {% for product, quantity in top_products %}<tr><td>{{ product.name }}</td><td>{{ quantity|number_format }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Ainda não há vendas neste mês.</p>{% endif %}
+</section>
+<section class="panel">
+    <div class="panel-header"><h2>Margem abaixo de 30%</h2><a href="{{ url_for('products.index') }}">Ver produtos</a></div>
+    {% if low_margin %}
+    <table><thead><tr><th>Produto</th><th>Margem</th></tr></thead><tbody>
+    {% for product in low_margin %}<tr><td>{{ product.name }}</td><td><span class="badge danger">{{ '%.1f'|format(product.margin_percent) }}%</span></td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Nenhum produto abaixo de 30%.</p>{% endif %}
+</section>
+</div>
+
+<section class="panel">
+    <div class="panel-header"><h2>Estoque baixo</h2><a href="{{ url_for('stock.index') }}">Ver estoque</a></div>
+    {% if low_stock %}
+    <table><thead><tr><th>Produto</th><th>Estoque</th><th>Mínimo</th></tr></thead><tbody>
+    {% for product in low_stock %}<tr><td>{{ product.name }}</td><td>{{ product.stock_quantity|number_format }}</td><td>{{ product.min_stock|number_format }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Nenhum produto com estoque mínimo configurado em alerta.</p>{% endif %}
+</section>
+{% endblock %}

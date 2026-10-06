@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Cafeteria Control{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><span>☕</span> Cafeteria Control</div>
+    <nav>
+        <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+        <a href="{{ url_for('products.index') }}">Produtos</a>
+        <a href="{{ url_for('sales.index') }}">Vendas</a>
+        <a href="{{ url_for('purchases.index') }}">Compras</a>
+    </nav>
+</header>
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+        {% for category, message in messages %}
+          <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

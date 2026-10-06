@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Compras | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Compras</h1><p>Entradas de produtos e atualização do custo médio.</p></div><a class="btn primary" href="{{ url_for('purchases.new') }}">+ Registrar compra</a></div>
+<section class="panel"><table><thead><tr><th>#</th><th>Data</th><th>Fornecedor</th><th>Total</th><th></th></tr></thead><tbody>
+{% for purchase in purchases %}<tr><td>#{{ purchase.id }}</td><td>{{ purchase.purchase_date.strftime('%d/%m/%Y') }}</td><td>{{ purchase.supplier or '-' }}</td><td>R$ {{ '%.2f'|format(purchase.total) }}</td><td><a class="btn small" href="{{ url_for('purchases.edit', purchase_id=purchase.id) }}">Editar</a></td></tr>{% else %}<tr><td colspan="5" class="muted">Nenhuma compra registrada.</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}

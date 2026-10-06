@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Estoque | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Estoque</h1><p>Posição atual por produto.</p></div><a class="btn primary" href="{{ url_for('stock.adjustment') }}">± Ajustar estoque</a></div>
+<section class="panel"><table><thead><tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mínimo</th><th>Status</th></tr></thead><tbody>
+{% for product in products %}<tr><td>{{ product.name }}</td><td>{{ product.category.name }}</td><td><strong>{{ product.stock_quantity|number_format }}</strong></td><td>{{ product.min_stock|number_format }}</td><td>{% if product.min_stock > 0 and product.stock_quantity <= product.min_stock %}<span class="badge danger">Baixo</span>{% else %}<span class="badge success">OK</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}

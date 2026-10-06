@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if product else 'Novo' }} produto | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ 'Editar produto' if product else 'Novo produto' }}</h1></div></div>
+<form method="post" class="panel form-grid">
+<label>Nome<input name="name" required value="{{ product.name if product else '' }}"></label>
+<label>Categoria<select name="category_id" required>{% for category in categories %}<option value="{{ category.id }}" {% if product and product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
+<label>Custo atual<input name="cost" inputmode="decimal" required value="{{ '%.2f'|format(product.cost) if product else '' }}"></label>
+<label>Preço de venda<input name="sale_price" inputmode="decimal" required value="{{ '%.2f'|format(product.sale_price) if product else '' }}"></label>
+<label>Estoque mínimo<input name="min_stock" inputmode="decimal" value="{{ '%.0f'|format(product.min_stock) if product else '0' }}"></label>
+{% if product %}<label class="checkbox"><input type="checkbox" name="active" {% if product.active %}checked{% endif %}> Produto ativo</label>{% endif %}
+<div class="form-actions"><a class="btn" href="{{ url_for('products.index') }}">Cancelar</a><button class="btn primary" type="submit">Salvar</button></div>
+</form>
+{% endblock %}

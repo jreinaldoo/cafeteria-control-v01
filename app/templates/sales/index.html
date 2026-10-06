@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Vendas | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Vendas</h1><p>Últimas vendas registradas.</p></div><a class="btn primary" href="{{ url_for('sales.new') }}">+ Nova venda</a></div>
+<section class="panel"><table><thead><tr><th>#</th><th>Data</th><th>Pagamento</th><th>Total</th><th>Custo</th><th>Lucro bruto</th><th></th></tr></thead><tbody>
+{% for sale in sales %}<tr><td><a href="{{ url_for('sales.detail', sale_id=sale.id) }}">#{{ sale.id }}</a></td><td>{{ sale.sale_date.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ sale.payment_method }}</td><td>R$ {{ '%.2f'|format(sale.total) }}</td><td>R$ {{ '%.2f'|format(sale.cost_total) }}</td><td>R$ {{ '%.2f'|format(sale.gross_profit) }}</td><td><a class="btn small" href="{{ url_for('sales.edit', sale_id=sale.id) }}">Editar</a></td></tr>{% else %}<tr><td colspan="7" class="muted">Nenhuma venda registrada.</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}
