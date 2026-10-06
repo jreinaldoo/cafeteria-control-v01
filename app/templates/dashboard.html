@@ -95,7 +95,11 @@ function createCharts() {
             }
         },
         scales: {
+            x: {
+                stacked: true
+            },
             y: {
+                stacked: true,
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
