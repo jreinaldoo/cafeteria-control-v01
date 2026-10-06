@@ -12,7 +12,7 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 
 def get_weekly_sales():
-    """Vendas por dia da semana (últimos 7 dias)"""
+    """Vendas por dia da semana (últimos 7 dias) separadas por tipo de pagamento"""
     now = datetime.now()
     week_ago = now - timedelta(days=6)
     day_start = datetime.combine(week_ago.date(), time.min)
@@ -24,42 +24,55 @@ def get_weekly_sales():
 
     # weekday() retorna 0=Segunda, 1=Terça, ..., 6=Domingo
     days_of_week = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
-    sales_by_day = {day: 0 for day in days_of_week}
+    pix_by_day = {day: 0 for day in days_of_week}
+    sumup_by_day = {day: 0 for day in days_of_week}
 
     for sale in sales:
         # Usar a data local da venda (ignorando timezone)
         sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
         day_name = days_of_week[sale_date.weekday()]
-        sales_by_day[day_name] += float(sale.total)
+        if sale.payment_method == "PIX":
+            pix_by_day[day_name] += float(sale.total)
+        elif sale.payment_method == "SUMUP":
+            sumup_by_day[day_name] += float(sale.total)
 
-    return list(sales_by_day.keys()), list(sales_by_day.values())
+    return list(pix_by_day.keys()), list(pix_by_day.values()), list(sumup_by_day.values())
 
 
 def get_monthly_sales():
-    """Vendas por dia (último mês)"""
+    """Vendas por dia (último mês) separadas por tipo de pagamento"""
     now = datetime.now()
     month_ago = now - timedelta(days=30)
     day_start = datetime.combine(month_ago.date(), time.min)
 
     sales = Sale.query.filter(Sale.sale_date >= day_start).all()
 
-    sales_by_date = {}
+    pix_by_date = {}
+    sumup_by_date = {}
+
     for sale in sales:
         sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
         date_str = sale_date.strftime("%d/%m")
-        sales_by_date[date_str] = sales_by_date.get(date_str, 0) + float(sale.total)
+        if sale.payment_method == "PIX":
+            pix_by_date[date_str] = pix_by_date.get(date_str, 0) + float(sale.total)
+        elif sale.payment_method == "SUMUP":
+            sumup_by_date[date_str] = sumup_by_date.get(date_str, 0) + float(sale.total)
 
     labels = []
-    values = []
-    for date_str in sorted(sales_by_date.keys()):
-        labels.append(date_str)
-        values.append(sales_by_date[date_str])
+    pix_values = []
+    sumup_values = []
 
-    return labels, values
+    all_dates = sorted(set(list(pix_by_date.keys()) + list(sumup_by_date.keys())))
+    for date_str in all_dates:
+        labels.append(date_str)
+        pix_values.append(pix_by_date.get(date_str, 0))
+        sumup_values.append(sumup_by_date.get(date_str, 0))
+
+    return labels, pix_values, sumup_values
 
 
 def get_6month_sales():
-    """Vendas por mês (últimos 6 meses)"""
+    """Vendas por mês (últimos 6 meses) separadas por tipo de pagamento"""
     now = datetime.now()
     six_months_ago = now - timedelta(days=180)
     day_start = datetime.combine(six_months_ago.date(), time.min)
@@ -67,22 +80,30 @@ def get_6month_sales():
     sales = Sale.query.filter(Sale.sale_date >= day_start).all()
 
     months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-    sales_by_month = {}
+    pix_by_month = {}
+    sumup_by_month = {}
 
     for sale in sales:
         sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
         year = sale_date.year
         month = sale_date.month
         label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
-        sales_by_month[label] = sales_by_month.get(label, 0) + float(sale.total)
+        if sale.payment_method == "PIX":
+            pix_by_month[label] = pix_by_month.get(label, 0) + float(sale.total)
+        elif sale.payment_method == "SUMUP":
+            sumup_by_month[label] = sumup_by_month.get(label, 0) + float(sale.total)
 
     labels = []
-    values = []
-    for label in sorted(sales_by_month.keys()):
-        labels.append(label)
-        values.append(sales_by_month[label])
+    pix_values = []
+    sumup_values = []
 
-    return labels, values
+    all_months = sorted(set(list(pix_by_month.keys()) + list(sumup_by_month.keys())))
+    for label in all_months:
+        labels.append(label)
+        pix_values.append(pix_by_month.get(label, 0))
+        sumup_values.append(sumup_by_month.get(label, 0))
+
+    return labels, pix_values, sumup_values
 
 
 @dashboard_bp.get("/")
@@ -132,9 +153,9 @@ def index():
     low_margin = [p for p in low_margin if p.margin_percent < Decimal("30")] [:8]
 
     # Dados para gráficos
-    weekly_labels, weekly_values = get_weekly_sales()
-    monthly_labels, monthly_values = get_monthly_sales()
-    six_month_labels, six_month_values = get_6month_sales()
+    weekly_labels, weekly_pix, weekly_sumup = get_weekly_sales()
+    monthly_labels, monthly_pix, monthly_sumup = get_monthly_sales()
+    six_month_labels, six_month_pix, six_month_sumup = get_6month_sales()
 
     return render_template(
         "dashboard.html",
@@ -148,9 +169,12 @@ def index():
         low_stock=low_stock,
         low_margin=low_margin,
         weekly_labels=weekly_labels,
-        weekly_values=weekly_values,
+        weekly_pix=weekly_pix,
+        weekly_sumup=weekly_sumup,
         monthly_labels=monthly_labels,
-        monthly_values=monthly_values,
+        monthly_pix=monthly_pix,
+        monthly_sumup=monthly_sumup,
         six_month_labels=six_month_labels,
-        six_month_values=six_month_values,
+        six_month_pix=six_month_pix,
+        six_month_sumup=six_month_sumup,
     )

@@ -73,11 +73,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 const weeklyLabels = {{ weekly_labels | tojson }};
-const weeklyValues = {{ weekly_values | tojson }};
+const weeklyPix = {{ weekly_pix | tojson }};
+const weeklySumup = {{ weekly_sumup | tojson }};
 const monthlyLabels = {{ monthly_labels | tojson }};
-const monthlyValues = {{ monthly_values | tojson }};
+const monthlyPix = {{ monthly_pix | tojson }};
+const monthlySumup = {{ monthly_sumup | tojson }};
 const sixMonthLabels = {{ six_month_labels | tojson }};
-const sixMonthValues = {{ six_month_values | tojson }};
+const sixMonthPix = {{ six_month_pix | tojson }};
+const sixMonthSumup = {{ six_month_sumup | tojson }};
 
 let weeklyChart, monthlyChart, sixMonthChart;
 
@@ -87,7 +90,8 @@ function createCharts() {
         maintainAspectRatio: true,
         plugins: {
             legend: {
-                display: false
+                display: true,
+                position: 'top'
             }
         },
         scales: {
@@ -106,13 +110,22 @@ function createCharts() {
         type: 'bar',
         data: {
             labels: weeklyLabels,
-            datasets: [{
-                label: 'Vendas',
-                data: weeklyValues,
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'PIX',
+                    data: weeklyPix,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'SumUp',
+                    data: weeklySumup,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: commonOptions
     });
@@ -121,13 +134,22 @@ function createCharts() {
         type: 'bar',
         data: {
             labels: monthlyLabels,
-            datasets: [{
-                label: 'Vendas',
-                data: monthlyValues,
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'PIX',
+                    data: monthlyPix,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'SumUp',
+                    data: monthlySumup,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: commonOptions
     });
@@ -136,13 +158,22 @@ function createCharts() {
         type: 'bar',
         data: {
             labels: sixMonthLabels,
-            datasets: [{
-                label: 'Vendas',
-                data: sixMonthValues,
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'PIX',
+                    data: sixMonthPix,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'SumUp',
+                    data: sixMonthSumup,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: commonOptions
     });
