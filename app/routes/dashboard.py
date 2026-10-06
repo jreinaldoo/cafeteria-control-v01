@@ -19,25 +19,17 @@ def get_weekly_sales():
 
     sales = (
         Sale.query.filter(Sale.sale_date >= day_start)
-        .with_entities(
-            func.date(Sale.sale_date).label("date"),
-            func.sum(Sale.total).label("total"),
-        )
-        .group_by(func.date(Sale.sale_date))
-        .order_by(func.date(Sale.sale_date))
         .all()
     )
 
     days_of_week = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
     sales_by_day = {day: 0 for day in days_of_week}
 
-    for date_str, total in sales:
-        if isinstance(date_str, str):
-            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-        else:
-            date_obj = date_str
-        day_name = days_of_week[date_obj.weekday()]
-        sales_by_day[day_name] = float(total)
+    for sale in sales:
+        # Usar a data local da venda (ignorando timezone)
+        sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
+        day_name = days_of_week[sale_date.weekday()]
+        sales_by_day[day_name] += float(sale.total)
 
     return list(sales_by_day.keys()), list(sales_by_day.values())
 
@@ -48,26 +40,19 @@ def get_monthly_sales():
     month_ago = now - timedelta(days=30)
     day_start = datetime.combine(month_ago.date(), time.min)
 
-    sales = (
-        Sale.query.filter(Sale.sale_date >= day_start)
-        .with_entities(
-            func.date(Sale.sale_date).label("date"),
-            func.sum(Sale.total).label("total"),
-        )
-        .group_by(func.date(Sale.sale_date))
-        .order_by(func.date(Sale.sale_date))
-        .all()
-    )
+    sales = Sale.query.filter(Sale.sale_date >= day_start).all()
+
+    sales_by_date = {}
+    for sale in sales:
+        sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
+        date_str = sale_date.strftime("%d/%m")
+        sales_by_date[date_str] = sales_by_date.get(date_str, 0) + float(sale.total)
 
     labels = []
     values = []
-    for date_str, total in sales:
-        if isinstance(date_str, str):
-            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-        else:
-            date_obj = date_str
-        labels.append(date_obj.strftime("%d/%m"))
-        values.append(float(total))
+    for date_str in sorted(sales_by_date.keys()):
+        labels.append(date_str)
+        values.append(sales_by_date[date_str])
 
     return labels, values
 
@@ -78,30 +63,23 @@ def get_6month_sales():
     six_months_ago = now - timedelta(days=180)
     day_start = datetime.combine(six_months_ago.date(), time.min)
 
-    sales = (
-        Sale.query.filter(Sale.sale_date >= day_start)
-        .with_entities(
-            func.strftime("%Y-%m", Sale.sale_date).label("month"),
-            func.sum(Sale.total).label("total"),
-        )
-        .group_by(func.strftime("%Y-%m", Sale.sale_date))
-        .order_by(func.strftime("%Y-%m", Sale.sale_date))
-        .all()
-    )
+    sales = Sale.query.filter(Sale.sale_date >= day_start).all()
 
     months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    sales_by_month = {}
+
+    for sale in sales:
+        sale_date = sale.sale_date.date() if hasattr(sale.sale_date, 'date') else sale.sale_date
+        year = sale_date.year
+        month = sale_date.month
+        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
+        sales_by_month[label] = sales_by_month.get(label, 0) + float(sale.total)
+
     labels = []
     values = []
-
-    for month_str, total in sales:
-        if isinstance(month_str, str):
-            year, month = map(int, month_str.split("-"))
-        else:
-            year = month_str.year
-            month = month_str.month
-        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
+    for label in sorted(sales_by_month.keys()):
         labels.append(label)
-        values.append(float(total))
+        values.append(sales_by_month[label])
 
     return labels, values
 
