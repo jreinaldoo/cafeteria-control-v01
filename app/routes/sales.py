@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from app.models import Product, Sale
@@ -24,7 +26,9 @@ def new():
                 for product_id, quantity in zip(product_ids, quantities)
                 if product_id and quantity
             ]
-            sale = create_sale(items, request.form["payment_method"])
+            sale_date_str = request.form.get("sale_date")
+            sale_date = datetime.strptime(sale_date_str, "%Y-%m-%d") if sale_date_str else None
+            sale = create_sale(items, request.form["payment_method"], sale_date)
             flash(f"Venda #{sale.id} registrada: R$ {sale.total:.2f}.", "success")
             return redirect(url_for("sales.index"))
         except (ValueError, KeyError) as exc:
@@ -51,7 +55,9 @@ def edit(sale_id):
                 for product_id, quantity in zip(product_ids, quantities)
                 if product_id and quantity
             ]
-            sale = update_sale(sale_id, items, request.form["payment_method"])
+            sale_date_str = request.form.get("sale_date")
+            sale_date = datetime.strptime(sale_date_str, "%Y-%m-%d") if sale_date_str else None
+            sale = update_sale(sale_id, items, request.form["payment_method"], sale_date)
             flash(f"Venda #{sale.id} atualizada: R$ {sale.total:.2f}.", "success")
             return redirect(url_for("sales.index"))
         except (ValueError, KeyError) as exc:

@@ -21,7 +21,16 @@
 {% endif %}
 </div>
 <div class="form-actions"><button class="btn" type="button" id="add-sale-row">+ Adicionar produto</button></div>
+<label>Data da venda<input name="sale_date" type="date" id="sale-date" value="{% if sale %}{{ sale.sale_date.strftime('%Y-%m-%d') }}{% endif %}" required></label>
 <label class="payment-label">Forma de pagamento<select name="payment_method" required><option value="PIX" {% if sale and sale.payment_method == 'PIX' %}selected{% endif %}>Pix</option><option value="SUMUP" {% if sale and sale.payment_method == 'SUMUP' %}selected{% endif %}>SumUp</option></select></label>
 <div class="form-actions"><a class="btn" href="{{ url_for('sales.index') }}">Cancelar</a><button class="btn primary" type="submit">{% if sale %}Atualizar venda{% else %}Registrar venda{% endif %}</button></div>
 </form>
+{% if not sale %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('sale-date').value = today;
+});
+</script>
+{% endif %}
 {% endblock %}

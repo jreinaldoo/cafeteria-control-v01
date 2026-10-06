@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from app import db
@@ -8,14 +9,14 @@ from app.services.stock_service import move_stock
 VALID_PAYMENT_METHODS = {"PIX", "SUMUP"}
 
 
-def create_sale(items, payment_method):
+def create_sale(items, payment_method, sale_date=None):
     if payment_method not in VALID_PAYMENT_METHODS:
         raise ValueError("Forma de pagamento inválida.")
     if not items:
         raise ValueError("A venda precisa ter pelo menos um produto.")
 
     try:
-        sale = Sale(payment_method=payment_method)
+        sale = Sale(payment_method=payment_method, sale_date=sale_date or datetime.utcnow())
         db.session.add(sale)
         db.session.flush()
 
@@ -54,7 +55,7 @@ def create_sale(items, payment_method):
         raise
 
 
-def update_sale(sale_id, items, payment_method):
+def update_sale(sale_id, items, payment_method, sale_date=None):
     if payment_method not in VALID_PAYMENT_METHODS:
         raise ValueError("Forma de pagamento inválida.")
     if not items:
@@ -104,6 +105,8 @@ def update_sale(sale_id, items, payment_method):
 
         sale.payment_method = payment_method
         sale.total = total
+        if sale_date:
+            sale.sale_date = sale_date
         db.session.commit()
         return sale
     except Exception:
