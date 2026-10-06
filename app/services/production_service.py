@@ -88,3 +88,42 @@ def get_production_by_date(production_date):
 def get_open_production():
     """Busca produção aberta mais recente"""
     return Production.query.filter_by(status="ABERTA").order_by(Production.production_date.desc()).first()
+
+
+def update_production(production_id, items, notes=None):
+    """Atualiza uma produção existente (apenas se estiver aberta)"""
+    try:
+        production = db.session.get(Production, production_id)
+        if not production:
+            raise ValueError("Produção não encontrada.")
+        if production.status == "FINALIZADA":
+            raise ValueError("Não é possível editar uma produção finalizada.")
+
+        # Remover todos os itens existentes
+        for item in production.items:
+            db.session.delete(item)
+
+        # Adicionar novos itens
+        for item in items:
+            product = db.session.get(Product, int(item["product_id"]))
+            quantity = Decimal(str(item["quantity"]))
+            if not product or not product.active:
+                raise ValueError("Produto inválido ou inativo.")
+            if quantity <= 0:
+                raise ValueError("A quantidade deve ser maior que zero.")
+
+            production.items.append(
+                ProductionItem(
+                    product=product,
+                    quantity_produced=quantity,
+                    quantity_sold=Decimal("0"),
+                    quantity_lost=Decimal("0"),
+                )
+            )
+
+        production.notes = notes
+        db.session.commit()
+        return production
+    except Exception:
+        db.session.rollback()
+        raise

@@ -72,6 +72,9 @@
                 <td>{{ production.items|sum(attribute='quantity_sold')|number_format }}</td>
                 <td>{{ production.items|sum(attribute='quantity_lost')|number_format }}</td>
                 <td>
+                    {% if production.status == 'ABERTA' %}
+                    <a class="btn small" href="{{ url_for('production.edit', production_id=production.id) }}">Editar</a>
+                    {% endif %}
                     <a class="btn small" href="{{ url_for('production.detail', production_id=production.id) }}">Detalhes</a>
                 </td>
             </tr>

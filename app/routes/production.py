@@ -9,6 +9,7 @@ from app.services.production_service import (
     finalize_production,
     get_open_production,
     get_production_by_date,
+    update_production,
 )
 
 production_bp = Blueprint("production", __name__)
@@ -84,3 +85,48 @@ def finalize(production_id):
             flash(str(exc), "error")
 
     return render_template("production/finalize.html", production=production)
+
+
+@production_bp.route("/<int:production_id>/editar", methods=["GET", "POST"])
+def edit(production_id):
+    production = Production.query.get_or_404(production_id)
+
+    if production.status == "FINALIZADA":
+        flash("Não é possível editar uma produção finalizada.", "error")
+        return redirect(url_for("production.detail", production_id=production_id))
+
+    # Filtrar apenas produtos que não são bebidas
+    products = (
+        Product.query.join(Category)
+        .filter(Product.active.is_(True))
+        .filter(Category.name != "Bebidas")
+        .order_by(Product.name)
+        .all()
+    )
+
+    if request.method == "POST":
+        try:
+            production_date_str = request.form.get("production_date")
+            production_date = (
+                datetime.strptime(production_date_str, "%Y-%m-%d").date() if production_date_str else production.production_date
+            )
+
+            product_ids = request.form.getlist("product_id[]")
+            quantities = request.form.getlist("quantity[]")
+            items = [
+                {"product_id": product_id, "quantity": quantity}
+                for product_id, quantity in zip(product_ids, quantities)
+                if product_id and quantity
+            ]
+
+            if not items:
+                raise ValueError("Adicione pelo menos um produto à produção.")
+
+            notes = request.form.get("notes", "").strip() or None
+            production = update_production(production_id, items, notes)
+            flash(f"Produção atualizada com sucesso.", "success")
+            return redirect(url_for("production.detail", production_id=production_id))
+        except (ValueError, KeyError) as exc:
+            flash(str(exc), "error")
+
+    return render_template("production/form.html", production=production, products=products)

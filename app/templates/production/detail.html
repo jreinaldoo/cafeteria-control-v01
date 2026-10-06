@@ -8,6 +8,7 @@
     </div>
     <div class="actions">
         {% if production.status == 'ABERTA' %}
+        <a class="btn" href="{{ url_for('production.edit', production_id=production.id) }}">Editar</a>
         <a class="btn primary" href="{{ url_for('production.finalize', production_id=production.id) }}">Finalizar dia</a>
         {% endif %}
         <a class="btn" href="{{ url_for('production.index') }}">Voltar</a>

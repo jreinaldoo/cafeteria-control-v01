@@ -1,43 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Nova produção | Cafeteria Control{% endblock %}
+{% block title %}{% if production %}Editar produção {{ production.production_date.strftime('%d/%m/%Y') }}{% else %}Nova produção{% endif %} | Cafeteria Control{% endblock %}
 {% block content %}
 <div class="page-header">
     <div>
-        <h1>Nova produção</h1>
+        <h1>{% if production %}Editar produção{% else %}Nova produção{% endif %}</h1>
         <p>Registre a produção de salgados e doces do dia.</p>
     </div>
 </div>
 
 <form method="post" class="panel" id="production-form">
-    <label>Data da produção<input name="production_date" type="date" id="production-date" required></label>
-    <label>Observações<input name="notes" placeholder="Ex: Feriado, produção reduzida"></label>
+    <label>Data da produção<input name="production_date" type="date" id="production-date" value="{% if production %}{{ production.production_date.strftime('%Y-%m-%d') }}{% endif %}" required></label>
+    <label>Observações<input name="notes" placeholder="Ex: Feriado, produção reduzida" value="{% if production %}{{ production.notes or '' }}{% endif %}"></label>
 
     <h3 style="margin-top: 24px;">Itens produzidos</h3>
     <div id="production-items">
-        <div class="production-row">
-            <select name="product_id[]" required>
-                {% for product in products %}
-                <option value="{{ product.id }}">{{ product.name }} ({{ product.category.name }})</option>
-                {% endfor %}
-            </select>
-            <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" required>
-            <button class="btn small danger-outline remove-row" type="button">Remover</button>
-        </div>
+        {% if production %}
+            {% for item in production.items %}
+            <div class="production-row">
+                <select name="product_id[]" required>
+                    {% for product in products %}
+                    <option value="{{ product.id }}" {% if product.id == item.product_id %}selected{% endif %}>{{ product.name }} ({{ product.category.name }})</option>
+                    {% endfor %}
+                </select>
+                <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" value="{{ item.quantity_produced }}" required>
+                <button class="btn small danger-outline remove-row" type="button">Remover</button>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="production-row">
+                <select name="product_id[]" required>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.name }} ({{ product.category.name }})</option>
+                    {% endfor %}
+                </select>
+                <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" required>
+                <button class="btn small danger-outline remove-row" type="button">Remover</button>
+            </div>
+        {% endif %}
     </div>
     <div class="form-actions">
         <button class="btn" type="button" id="add-production-row">+ Adicionar item</button>
     </div>
 
     <div class="form-actions" style="margin-top: 24px;">
-        <a class="btn" href="{{ url_for('production.index') }}">Cancelar</a>
-        <button class="btn primary" type="submit">Criar produção</button>
+        <a class="btn" href="{% if production %}{{ url_for('production.detail', production_id=production.id) }}{% else %}{{ url_for('production.index') }}{% endif %}">Cancelar</a>
+        <button class="btn primary" type="submit">{% if production %}Atualizar produção{% else %}Criar produção{% endif %}</button>
     </div>
 </form>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    {% if not production %}
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('production-date').value = today;
+    {% endif %}
 
     document.getElementById('add-production-row').addEventListener('click', function() {
         const container = document.getElementById('production-items');
