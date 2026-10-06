@@ -117,14 +117,13 @@ def get_monthly_purchases():
     purchases_by_date = {}
     for purchase in purchases:
         purchase_date = purchase.purchase_date if hasattr(purchase.purchase_date, 'strftime') else purchase.purchase_date
-        date_str = purchase_date.strftime("%d/%m")
-        purchases_by_date[date_str] = purchases_by_date.get(date_str, 0) + float(purchase.total)
+        purchases_by_date[purchase_date] = purchases_by_date.get(purchase_date, 0) + float(purchase.total)
 
     labels = []
     values = []
-    for date_str in sorted(purchases_by_date.keys()):
-        labels.append(date_str)
-        values.append(purchases_by_date[date_str])
+    for purchase_date in sorted(purchases_by_date.keys()):
+        labels.append(purchase_date.strftime("%d/%m"))
+        values.append(purchases_by_date[purchase_date])
 
     return labels, values
 
@@ -142,16 +141,16 @@ def get_6month_purchases():
 
     for purchase in purchases:
         purchase_date = purchase.purchase_date if hasattr(purchase.purchase_date, 'year') else purchase.purchase_date
-        year = purchase_date.year
-        month = purchase_date.month
-        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
-        purchases_by_month[label] = purchases_by_month.get(label, 0) + float(purchase.total)
+        purchases_by_month[purchase_date] = purchases_by_month.get(purchase_date, 0) + float(purchase.total)
 
     labels = []
     values = []
-    for label in sorted(purchases_by_month.keys()):
+    for purchase_date in sorted(purchases_by_month.keys()):
+        year = purchase_date.year
+        month = purchase_date.month
+        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
         labels.append(label)
-        values.append(purchases_by_month[label])
+        values.append(purchases_by_month[purchase_date])
 
     return labels, values
 
