@@ -117,6 +117,12 @@ const sixMonthPurchaseTotal = {{ six_month_purchase_total | tojson }};
 let weeklyChart, monthlyChart, sixMonthChart;
 let purchaseMonthlyChart, purchaseSixmonthChart;
 
+// Function to hide legend when total is zero
+function setLegendVisibility(chart, total) {
+    chart.options.plugins.legend.display = total > 0;
+    chart.update();
+}
+
 function createCharts() {
     Chart.register(ChartDataLabels);
 
@@ -255,6 +261,13 @@ function createCharts() {
     // Initialize sales total
     updateSalesTotal(weeklyTotal);
 
+    // Set initial legend visibility
+    setLegendVisibility(weeklyChart, weeklyTotal);
+    setLegendVisibility(monthlyChart, monthlyTotal);
+    setLegendVisibility(sixMonthChart, sixMonthTotal);
+    setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
+    setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
+
     // Purchase charts
     const purchaseOptions = {
         responsive: true,
@@ -339,13 +352,20 @@ function showChart(chartType) {
     document.getElementById('btn-' + chartType).classList.add('primary');
 
     // Update total based on selected filter
+    let total = 0;
+    let chart = null;
     if (chartType === 'weekly') {
-        updateSalesTotal(weeklyTotal);
+        total = weeklyTotal;
+        chart = weeklyChart;
     } else if (chartType === 'monthly') {
-        updateSalesTotal(monthlyTotal);
+        total = monthlyTotal;
+        chart = monthlyChart;
     } else if (chartType === 'sixmonth') {
-        updateSalesTotal(sixMonthTotal);
+        total = sixMonthTotal;
+        chart = sixMonthChart;
     }
+    updateSalesTotal(total);
+    setLegendVisibility(chart, total);
 }
 
 function updateSalesTotal(total) {
@@ -363,10 +383,12 @@ function showPurchaseChart(chartType) {
         document.getElementById('purchaseMonthlyChart').style.display = 'block';
         document.getElementById('btn-purchase-monthly').classList.add('primary');
         updatePurchaseTotal(monthlyPurchaseTotal);
+        setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
     } else if (chartType === 'sixmonth') {
         document.getElementById('purchaseSixmonthChart').style.display = 'block';
         document.getElementById('btn-purchase-sixmonth').classList.add('primary');
         updatePurchaseTotal(sixMonthPurchaseTotal);
+        setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
     }
 }
 
