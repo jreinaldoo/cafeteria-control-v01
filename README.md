@@ -56,3 +56,33 @@ Na primeira execução, os produtos informados no projeto são cadastrados autom
 5. Controle de fornecedores.
 6. Backup automático do SQLite.
 7. Ficha técnica para produtos produzidos pela cafeteria.
+
+## Backup do Banco de Dados
+
+⚠️ **IMPORTANTE**: O banco de dados (`instance/cafeteria.db`) NÃO é versionado no Git (está no `.gitignore`). Isso significa que você DEVE fazer backup manualmente antes de qualquer operação que possa alterar a estrutura do banco.
+
+### Como fazer backup:
+
+```bash
+# Criar backup
+cp instance/cafeteria.db instance/cafeteria.db.backup.$(date +%Y%m%d_%H%M%S)
+
+# Ou para uma pasta específica
+cp instance/cafeteria.db ~/backups/cafeteria.db.$(date +%Y%m%d_%H%M%S)
+```
+
+### Quando fazer backup:
+
+- Antes de qualquer mudança no código que altere models (tabelas, colunas)
+- Antes de executar migrations ou alterações de schema
+- Antes de atualizar o Flask-SQLAlchemy ou outras dependências
+- Periodicamente (recomendado: diário ou semanal)
+
+### Restaurar backup:
+
+```bash
+# Parar a aplicação
+# Restaurar o backup
+cp instance/cafeteria.db.backup.YYYYMMDD_HHMMSS instance/cafeteria.db
+# Reiniciar a aplicação
+```
