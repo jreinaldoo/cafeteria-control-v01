@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from app.models import Product, Purchase
@@ -17,11 +19,14 @@ def new():
     products = Product.query.filter_by(active=True).order_by(Product.name).all()
     if request.method == "POST":
         try:
+            purchase_date_str = request.form.get("purchase_date")
+            purchase_date = datetime.strptime(purchase_date_str, "%Y-%m-%d").date() if purchase_date_str else None
             purchase = create_purchase(
                 request.form["product_id"],
                 request.form["quantity"],
                 request.form["unit_cost"].replace(",", "."),
                 request.form.get("supplier", "").strip() or None,
+                purchase_date,
             )
             flash(f"Compra #{purchase.id} registrada e estoque atualizado.", "success")
             return redirect(url_for("purchases.index"))
@@ -36,12 +41,15 @@ def edit(purchase_id):
     products = Product.query.filter_by(active=True).order_by(Product.name).all()
     if request.method == "POST":
         try:
+            purchase_date_str = request.form.get("purchase_date")
+            purchase_date = datetime.strptime(purchase_date_str, "%Y-%m-%d").date() if purchase_date_str else None
             purchase = update_purchase(
                 purchase_id,
                 request.form["product_id"],
                 request.form["quantity"],
                 request.form["unit_cost"].replace(",", "."),
                 request.form.get("supplier", "").strip() or None,
+                purchase_date,
             )
             flash(f"Compra #{purchase.id} atualizada e estoque recalculado.", "success")
             return redirect(url_for("purchases.index"))

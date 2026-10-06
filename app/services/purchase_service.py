@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from app import db
@@ -5,7 +6,7 @@ from app.models import Product, Purchase, PurchaseItem
 from app.services.stock_service import move_stock
 
 
-def create_purchase(product_id, quantity, unit_cost, supplier=None):
+def create_purchase(product_id, quantity, unit_cost, supplier=None, purchase_date=None):
     try:
         product = db.session.get(Product, int(product_id))
         quantity = Decimal(str(quantity))
@@ -20,7 +21,7 @@ def create_purchase(product_id, quantity, unit_cost, supplier=None):
         old_cost = Decimal(product.cost or 0)
         total = (quantity * unit_cost).quantize(Decimal("0.01"))
 
-        purchase = Purchase(supplier=supplier, total=total)
+        purchase = Purchase(supplier=supplier, total=total, purchase_date=purchase_date or date.today())
         db.session.add(purchase)
         db.session.flush()
         purchase.items.append(
@@ -45,7 +46,7 @@ def create_purchase(product_id, quantity, unit_cost, supplier=None):
         raise
 
 
-def update_purchase(purchase_id, product_id, quantity, unit_cost, supplier=None):
+def update_purchase(purchase_id, product_id, quantity, unit_cost, supplier=None, purchase_date=None):
     try:
         purchase = db.session.get(Purchase, purchase_id)
         if not purchase:
@@ -94,6 +95,8 @@ def update_purchase(purchase_id, product_id, quantity, unit_cost, supplier=None)
         move_stock(product, quantity, "COMPRA", "PURCHASE", purchase.id)
         purchase.supplier = supplier
         purchase.total = total
+        if purchase_date:
+            purchase.purchase_date = purchase_date
         db.session.commit()
         return purchase
     except Exception:

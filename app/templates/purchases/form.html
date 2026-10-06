@@ -3,10 +3,19 @@
 {% block content %}
 <div class="page-header"><div><h1>{% if purchase %}Editar compra #{{ purchase.id }}{% else %}Registrar compra{% endif %}</h1><p>A compra aumenta o estoque e recalcula o custo médio do produto.</p></div></div>
 <form method="post" class="panel form-grid">
+<label>Data da compra<input name="purchase_date" type="date" id="purchase-date" value="{% if purchase %}{{ purchase.purchase_date.strftime('%Y-%m-%d') }}{% endif %}" required></label>
 <label>Produto<select name="product_id" required>{% for product in products %}<option value="{{ product.id }}" {% if purchase and purchase.items and purchase.items[0].product_id == product.id %}selected{% endif %}>{{ product.name }} — custo atual R$ {{ '%.2f'|format(product.cost) }}</option>{% endfor %}</select></label>
 <label>Quantidade<input name="quantity" type="number" min="0.001" step="0.001" value="{% if purchase and purchase.items %}{{ purchase.items[0].quantity }}{% endif %}" required></label>
 <label>Custo unitário<input name="unit_cost" inputmode="decimal" placeholder="0,00" value="{% if purchase and purchase.items %}{{ purchase.items[0].unit_cost }}{% endif %}" required></label>
 <label>Fornecedor<input name="supplier" value="{% if purchase %}{{ purchase.supplier or '' }}{% endif %}"></label>
 <div class="form-actions"><a class="btn" href="{{ url_for('purchases.index') }}">Cancelar</a><button class="btn primary" type="submit">{% if purchase %}Atualizar compra{% else %}Registrar compra{% endif %}</button></div>
 </form>
+{% if not purchase %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('purchase-date').value = today;
+});
+</script>
+{% endif %}
 {% endblock %}
