@@ -17,6 +17,7 @@
     <div class="card"><span>Vendas</span><strong>R$ {{ '%.2f'|format(today_revenue) }}</strong></div>
     <div class="card"><span>Custo</span><strong>R$ {{ '%.2f'|format(today_cost) }}</strong></div>
     <div class="card"><span>Lucro bruto</span><strong>R$ {{ '%.2f'|format(today_profit) }}</strong></div>
+    <div class="card"><span>Margem</span><strong>{{ '%.1f'|format(today_margin) }}%</strong></div>
 </div>
 
 <h2>Este mês</h2>
@@ -24,6 +25,7 @@
     <div class="card"><span>Faturamento</span><strong>R$ {{ '%.2f'|format(month_revenue) }}</strong></div>
     <div class="card"><span>Custo dos produtos</span><strong>R$ {{ '%.2f'|format(month_cost) }}</strong></div>
     <div class="card"><span>Lucro bruto</span><strong>R$ {{ '%.2f'|format(month_profit) }}</strong></div>
+    <div class="card"><span>Margem</span><strong>{{ '%.1f'|format(month_margin) }}%</strong></div>
 </div>
 
 <section class="panel">

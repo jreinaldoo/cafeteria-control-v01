@@ -120,6 +120,15 @@ def index():
     month_revenue = sum((Decimal(s.total) for s in month_sales), Decimal("0.00"))
     month_cost = sum((s.cost_total for s in month_sales), Decimal("0.00"))
 
+    # Calcular margem percentual
+    today_margin = Decimal("0")
+    if today_revenue > 0:
+        today_margin = ((today_revenue - today_cost) / today_revenue) * Decimal("100")
+
+    month_margin = Decimal("0")
+    if month_revenue > 0:
+        month_margin = ((month_revenue - month_cost) / month_revenue) * Decimal("100")
+
     top_products = (
         SaleItem.query.join(Sale)
         .filter(Sale.sale_date >= month_start)
@@ -162,9 +171,11 @@ def index():
         today_revenue=today_revenue,
         today_cost=today_cost,
         today_profit=today_revenue - today_cost,
+        today_margin=today_margin,
         month_revenue=month_revenue,
         month_cost=month_cost,
         month_profit=month_revenue - month_cost,
+        month_margin=month_margin,
         top_products=top_product_rows,
         low_stock=low_stock,
         low_margin=low_margin,
