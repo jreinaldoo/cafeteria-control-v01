@@ -42,6 +42,9 @@
         <canvas id="monthlyChart" style="display: none;"></canvas>
         <canvas id="sixmonthChart" style="display: none;"></canvas>
     </div>
+    <div class="totals" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Total do período <strong id="sales-total">R$ 0,00</strong></span>
+    </div>
 </section>
 
 <div class="grid-2">
@@ -95,12 +98,15 @@
 const weeklyLabels = {{ weekly_labels | tojson }};
 const weeklyPix = {{ weekly_pix | tojson }};
 const weeklySumup = {{ weekly_sumup | tojson }};
+const weeklyTotal = {{ weekly_total | tojson }};
 const monthlyLabels = {{ monthly_labels | tojson }};
 const monthlyPix = {{ monthly_pix | tojson }};
 const monthlySumup = {{ monthly_sumup | tojson }};
+const monthlyTotal = {{ monthly_total | tojson }};
 const sixMonthLabels = {{ six_month_labels | tojson }};
 const sixMonthPix = {{ six_month_pix | tojson }};
 const sixMonthSumup = {{ six_month_sumup | tojson }};
+const sixMonthTotal = {{ six_month_total | tojson }};
 const monthlyPurchaseLabels = {{ monthly_purchase_labels | tojson }};
 const monthlyPurchaseValues = {{ monthly_purchase_values | tojson }};
 const sixMonthPurchaseLabels = {{ six_month_purchase_labels | tojson }};
@@ -246,6 +252,9 @@ function createCharts() {
 
     document.getElementById('btn-weekly').classList.add('primary');
 
+    // Initialize sales total
+    updateSalesTotal(weeklyTotal);
+
     // Purchase charts
     const purchaseOptions = {
         responsive: true,
@@ -328,6 +337,19 @@ function showChart(chartType) {
 
     document.getElementById(chartType + 'Chart').style.display = 'block';
     document.getElementById('btn-' + chartType).classList.add('primary');
+
+    // Update total based on selected filter
+    if (chartType === 'weekly') {
+        updateSalesTotal(weeklyTotal);
+    } else if (chartType === 'monthly') {
+        updateSalesTotal(monthlyTotal);
+    } else if (chartType === 'sixmonth') {
+        updateSalesTotal(sixMonthTotal);
+    }
+}
+
+function updateSalesTotal(total) {
+    document.getElementById('sales-total').textContent = 'R$ ' + total.toFixed(2);
 }
 
 function showPurchaseChart(chartType) {

@@ -40,7 +40,8 @@ def get_weekly_sales():
         elif sale.payment_method == "SUMUP":
             sumup_by_day[day_name] += float(sale.total)
 
-    return list(pix_by_day.keys()), list(pix_by_day.values()), list(sumup_by_day.values())
+    total = sum(pix_by_day.values()) + sum(sumup_by_day.values())
+    return list(pix_by_day.keys()), list(pix_by_day.values()), list(sumup_by_day.values()), total
 
 
 def get_monthly_sales():
@@ -72,7 +73,8 @@ def get_monthly_sales():
         pix_values.append(pix_by_date.get(date_str, 0))
         sumup_values.append(sumup_by_date.get(date_str, 0))
 
-    return labels, pix_values, sumup_values
+    total = sum(pix_values) + sum(sumup_values)
+    return labels, pix_values, sumup_values, total
 
 
 def get_6month_sales():
@@ -107,7 +109,8 @@ def get_6month_sales():
         pix_values.append(pix_by_month.get(label, 0))
         sumup_values.append(sumup_by_month.get(label, 0))
 
-    return labels, pix_values, sumup_values
+    total = sum(pix_values) + sum(sumup_values)
+    return labels, pix_values, sumup_values, total
 
 
 def get_monthly_purchases():
@@ -217,9 +220,9 @@ def index():
     low_margin = [p for p in low_margin if p.margin_percent < Decimal("30")] [:8]
 
     # Dados para gráficos
-    weekly_labels, weekly_pix, weekly_sumup = get_weekly_sales()
-    monthly_labels, monthly_pix, monthly_sumup = get_monthly_sales()
-    six_month_labels, six_month_pix, six_month_sumup = get_6month_sales()
+    weekly_labels, weekly_pix, weekly_sumup, weekly_total = get_weekly_sales()
+    monthly_labels, monthly_pix, monthly_sumup, monthly_total = get_monthly_sales()
+    six_month_labels, six_month_pix, six_month_sumup, six_month_total = get_6month_sales()
 
     # Dados para gráficos de compras
     monthly_purchase_labels, monthly_purchase_values, monthly_purchase_total = get_monthly_purchases()
@@ -241,12 +244,15 @@ def index():
         weekly_labels=weekly_labels,
         weekly_pix=weekly_pix,
         weekly_sumup=weekly_sumup,
+        weekly_total=weekly_total,
         monthly_labels=monthly_labels,
         monthly_pix=monthly_pix,
         monthly_sumup=monthly_sumup,
+        monthly_total=monthly_total,
         six_month_labels=six_month_labels,
         six_month_pix=six_month_pix,
         six_month_sumup=six_month_sumup,
+        six_month_total=six_month_total,
         monthly_purchase_labels=monthly_purchase_labels,
         monthly_purchase_values=monthly_purchase_values,
         monthly_purchase_total=monthly_purchase_total,
