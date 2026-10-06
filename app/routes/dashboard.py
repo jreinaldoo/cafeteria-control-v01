@@ -31,8 +31,12 @@ def get_weekly_sales():
     days_of_week = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
     sales_by_day = {day: 0 for day in days_of_week}
 
-    for date, total in sales:
-        day_name = days_of_week[date.weekday()]
+    for date_str, total in sales:
+        if isinstance(date_str, str):
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        else:
+            date_obj = date_str
+        day_name = days_of_week[date_obj.weekday()]
         sales_by_day[day_name] = float(total)
 
     return list(sales_by_day.keys()), list(sales_by_day.values())
@@ -57,8 +61,12 @@ def get_monthly_sales():
 
     labels = []
     values = []
-    for date, total in sales:
-        labels.append(date.strftime("%d/%m"))
+    for date_str, total in sales:
+        if isinstance(date_str, str):
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        else:
+            date_obj = date_str
+        labels.append(date_obj.strftime("%d/%m"))
         values.append(float(total))
 
     return labels, values
@@ -86,7 +94,11 @@ def get_6month_sales():
     values = []
 
     for month_str, total in sales:
-        year, month = map(int, month_str.split("-"))
+        if isinstance(month_str, str):
+            year, month = map(int, month_str.split("-"))
+        else:
+            year = month_str.year
+            month = month_str.month
         label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
         labels.append(label)
         values.append(float(total))
