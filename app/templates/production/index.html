@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Produção | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Produção</h1>
+        <p>Controle de produção de salgados e doces do dia.</p>
+    </div>
+    <div class="actions">
+        <a class="btn primary" href="{{ url_for('production.new') }}">+ Nova produção</a>
+    </div>
+</div>
+
+{% if open_production %}
+<section class="panel" style="border-left: 4px solid #3b82f6;">
+    <div class="panel-header">
+        <h2>🔥 Produção em aberto</h2>
+        <a class="btn" href="{{ url_for('production.finalize', production_id=open_production.id) }}">Finalizar dia</a>
+    </div>
+    <p><strong>Data:</strong> {{ open_production.production_date.strftime('%d/%m/%Y') }}</p>
+    {% if open_production.notes %}
+    <p><strong>Observações:</strong> {{ open_production.notes }}</p>
+    {% endif %}
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Produzido</th>
+                <th>Vendido</th>
+                <th>Perda</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in open_production.items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity_produced|number_format }}</td>
+                <td>{{ item.quantity_sold|number_format }}</td>
+                <td>{{ item.quantity_lost|number_format }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+<section class="panel">
+    <div class="panel-header"><h2>Histórico de produções</h2></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Itens</th>
+                <th>Total produzido</th>
+                <th>Total vendido</th>
+                <th>Total perda</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for production in productions %}
+            <tr>
+                <td>{{ production.production_date.strftime('%d/%m/%Y') }}</td>
+                <td>
+                    <span class="badge {% if production.status == 'ABERTA' %}warning{% else %}success{% endif %}">
+                        {{ production.status }}
+                    </span>
+                </td>
+                <td>{{ production.items|length }}</td>
+                <td>{{ production.items|sum(attribute='quantity_produced')|number_format }}</td>
+                <td>{{ production.items|sum(attribute='quantity_sold')|number_format }}</td>
+                <td>{{ production.items|sum(attribute='quantity_lost')|number_format }}</td>
+                <td>
+                    <a class="btn small" href="{{ url_for('production.detail', production_id=production.id) }}">Detalhes</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="muted">Nenhuma produção registrada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

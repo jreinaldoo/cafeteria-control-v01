@@ -43,12 +43,14 @@ def create_app(test_config=None):
     from app.routes.sales import sales_bp
     from app.routes.purchases import purchases_bp
     from app.routes.stock import stock_bp
+    from app.routes.production import production_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(products_bp, url_prefix="/produtos")
     app.register_blueprint(sales_bp, url_prefix="/vendas")
     app.register_blueprint(purchases_bp, url_prefix="/compras")
     app.register_blueprint(stock_bp, url_prefix="/estoque")
+    app.register_blueprint(production_bp, url_prefix="/producao")
 
     with app.app_context():
         from app import models  # noqa: F401

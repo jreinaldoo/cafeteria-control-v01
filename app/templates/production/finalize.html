@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Finalizar produção | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Finalizar produção</h1>
+        <p>Informe quantos itens foram vendidos. O restante será registrado como perda.</p>
+    </div>
+</div>
+
+<form method="post" class="panel">
+    <p><strong>Data:</strong> {{ production.production_date.strftime('%d/%m/%Y') }}</p>
+    {% if production.notes %}
+    <p><strong>Observações:</strong> {{ production.notes }}</p>
+    {% endif %}
+
+    <h3 style="margin-top: 24px;">Informar vendas</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Produzido</th>
+                <th>Vendido</th>
+                <th>Perda (calculada)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in production.items %}
+            <tr>
+                <td><strong>{{ item.product.name }}</strong></td>
+                <td>{{ item.quantity_produced|number_format }}</td>
+                <td>
+                    <input
+                        name="sold_{{ item.id }}"
+                        type="number"
+                        min="0"
+                        max="{{ item.quantity_produced }}"
+                        step="0.001"
+                        value="{{ item.quantity_sold }}"
+                        class="sold-input"
+                        data-produced="{{ item.quantity_produced }}"
+                        data-row="{{ loop.index }}"
+                        required
+                    >
+                </td>
+                <td><span id="loss_{{ loop.index }}">{{ (item.quantity_produced - item.quantity_sold)|number_format }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="form-actions" style="margin-top: 24px;">
+        <a class="btn" href="{{ url_for('production.detail', production_id=production.id) }}">Cancelar</a>
+        <button class="btn primary" type="submit">Finalizar e registrar venda</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.sold-input');
+
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const produced = parseFloat(this.dataset.produced);
+            const sold = parseFloat(this.value) || 0;
+            const loss = produced - sold;
+            const row = this.dataset.row;
+            document.getElementById('loss_' + row).textContent = loss.toFixed(3).replace(/\.?0+$/, '');
+        });
+    });
+});
+</script>
+{% endblock %}

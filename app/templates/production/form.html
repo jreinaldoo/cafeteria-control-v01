@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Nova produção | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Nova produção</h1>
+        <p>Registre a produção de salgados e doces do dia.</p>
+    </div>
+</div>
+
+<form method="post" class="panel" id="production-form">
+    <label>Data da produção<input name="production_date" type="date" id="production-date" required></label>
+    <label>Observações<input name="notes" placeholder="Ex: Feriado, produção reduzida"></label>
+
+    <h3 style="margin-top: 24px;">Itens produzidos</h3>
+    <div id="production-items">
+        <div class="production-row">
+            <select name="product_id[]" required>
+                {% for product in products %}
+                <option value="{{ product.id }}">{{ product.name }} ({{ product.category.name }})</option>
+                {% endfor %}
+            </select>
+            <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" required>
+            <button class="btn small danger-outline remove-row" type="button">Remover</button>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button class="btn" type="button" id="add-production-row">+ Adicionar item</button>
+    </div>
+
+    <div class="form-actions" style="margin-top: 24px;">
+        <a class="btn" href="{{ url_for('production.index') }}">Cancelar</a>
+        <button class="btn primary" type="submit">Criar produção</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('production-date').value = today;
+
+    document.getElementById('add-production-row').addEventListener('click', function() {
+        const container = document.getElementById('production-items');
+        const newRow = document.createElement('div');
+        newRow.className = 'production-row';
+        newRow.innerHTML = `
+            <select name="product_id[]" required>
+                {% for product in products %}
+                <option value="{{ product.id }}">{{ product.name }} ({{ product.category.name }})</option>
+                {% endfor %}
+            </select>
+            <input name="quantity[]" type="number" min="0.001" step="0.001" placeholder="Quantidade" required>
+            <button class="btn small danger-outline remove-row" type="button">Remover</button>
+        `;
+        container.appendChild(newRow);
+    });
+
+    document.getElementById('production-items').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-row')) {
+            const rows = document.querySelectorAll('.production-row');
+            if (rows.length > 1) {
+                e.target.closest('.production-row').remove();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

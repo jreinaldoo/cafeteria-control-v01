@@ -48,6 +48,7 @@ input:focus, select:focus { outline:2px solid #d9c7b8; border-color:#9c7962; }
 .form-grid .form-actions, .form-grid > .form-actions { grid-column:1 / -1; }
 .payment-label { max-width:300px; margin-top:18px; }
 .sale-row { display:grid; grid-template-columns:1fr 150px 90px; gap:10px; margin-bottom:10px; }
+.production-row { display:grid; grid-template-columns:1fr 150px 90px; gap:10px; margin-bottom:10px; }
 .totals { display:flex; justify-content:flex-end; gap:28px; flex-wrap:wrap; margin-top:18px; padding-top:15px; border-top:1px solid #eee8e3; }
 .totals span { display:grid; gap:3px; color:#746c66; }
 .totals strong { color:#2c2724; font-size:18px; }

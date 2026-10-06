@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Produção {{ production.production_date.strftime('%d/%m/%Y') }} | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Produção {{ production.production_date.strftime('%d/%m/%Y') }}</h1>
+        <p>Detalhes da produção do dia.</p>
+    </div>
+    <div class="actions">
+        {% if production.status == 'ABERTA' %}
+        <a class="btn primary" href="{{ url_for('production.finalize', production_id=production.id) }}">Finalizar dia</a>
+        {% endif %}
+        <a class="btn" href="{{ url_for('production.index') }}">Voltar</a>
+    </div>
+</div>
+
+<section class="panel">
+    <div class="panel-header"><h2>Informações</h2></div>
+    <p><strong>Status:</strong>
+        <span class="badge {% if production.status == 'ABERTA' %}warning{% else %}success{% endif %}">
+            {{ production.status }}
+        </span>
+    </p>
+    <p><strong>Data:</strong> {{ production.production_date.strftime('%d/%m/%Y') }}</p>
+    {% if production.notes %}
+    <p><strong>Observações:</strong> {{ production.notes }}</p>
+    {% endif %}
+    <p><strong>Criado em:</strong> {{ production.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+    {% if production.finalized_at %}
+    <p><strong>Finalizado em:</strong> {{ production.finalized_at.strftime('%d/%m/%Y %H:%M') }}</p>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <div class="panel-header"><h2>Itens</h2></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Produzido</th>
+                <th>Vendido</th>
+                <th>Perda</th>
+                <th>% Vendido</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in production.items %}
+            <tr>
+                <td><strong>{{ item.product.name }}</strong></td>
+                <td>{{ item.product.category.name }}</td>
+                <td>{{ item.quantity_produced|number_format }}</td>
+                <td>{{ item.quantity_sold|number_format }}</td>
+                <td>{{ item.quantity_lost|number_format }}</td>
+                <td>
+                    {% set sold_percent = (item.quantity_sold / item.quantity_produced * 100) if item.quantity_produced > 0 else 0 %}
+                    <span class="badge {% if sold_percent >= 80 %}success{% elif sold_percent >= 50 %}warning{% else %}danger{% endif %}">
+                        {{ sold_percent|round(1) }}%
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <div class="panel-header"><h2>Resumo</h2></div>
+    <div class="cards">
+        <div class="card">
+            <span>Total produzido</span>
+            <strong>{{ production.items|sum(attribute='quantity_produced')|number_format }}</strong>
+        </div>
+        <div class="card">
+            <span>Total vendido</span>
+            <strong>{{ production.items|sum(attribute='quantity_sold')|number_format }}</strong>
+        </div>
+        <div class="card">
+            <span>Total perda</span>
+            <strong>{{ production.items|sum(attribute='quantity_lost')|number_format }}</strong>
+        </div>
+    </div>
+</section>
+{% endblock %}
