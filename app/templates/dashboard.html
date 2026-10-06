@@ -265,8 +265,6 @@ function createCharts() {
     setLegendVisibility(weeklyChart, weeklyTotal);
     setLegendVisibility(monthlyChart, monthlyTotal);
     setLegendVisibility(sixMonthChart, sixMonthTotal);
-    setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
-    setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
 
     // Purchase charts
     const purchaseOptions = {
@@ -338,6 +336,10 @@ function createCharts() {
 
     // Initialize purchase total
     updatePurchaseTotal(monthlyPurchaseTotal);
+
+    // Set initial legend visibility for purchase charts
+    setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
+    setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
 }
 
 function showChart(chartType) {
