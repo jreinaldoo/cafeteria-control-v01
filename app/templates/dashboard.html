@@ -94,7 +94,31 @@ function createCharts() {
         plugins: {
             legend: {
                 display: true,
-                position: 'top'
+                position: 'top',
+                labels: {
+                    generateLabels: function(chart) {
+                        const pixTotal = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                        const sumupTotal = chart.data.datasets[1].data.reduce((a, b) => a + b, 0);
+                        return [
+                            {
+                                text: 'PIX: R$ ' + pixTotal.toFixed(2),
+                                fillStyle: 'rgba(34, 197, 94, 0.8)',
+                                strokeStyle: 'rgba(34, 197, 94, 1)',
+                                lineWidth: 1,
+                                hidden: false,
+                                index: 0
+                            },
+                            {
+                                text: 'SumUp: R$ ' + sumupTotal.toFixed(2),
+                                fillStyle: 'rgba(59, 130, 246, 0.8)',
+                                strokeStyle: 'rgba(59, 130, 246, 1)',
+                                lineWidth: 1,
+                                hidden: false,
+                                index: 1
+                            }
+                        ];
+                    }
+                }
             },
             datalabels: {
                 display: function(context) {
