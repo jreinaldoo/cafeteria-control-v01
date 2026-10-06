@@ -26,6 +26,22 @@
     <div class="card"><span>Lucro bruto</span><strong>R$ {{ '%.2f'|format(month_profit) }}</strong></div>
 </div>
 
+<section class="panel">
+    <div class="panel-header">
+        <h2>Vendas por período</h2>
+        <div class="chart-filters">
+            <button class="btn small" onclick="showChart('weekly')" id="btn-weekly">Esta semana</button>
+            <button class="btn small" onclick="showChart('monthly')" id="btn-monthly">Último mês</button>
+            <button class="btn small" onclick="showChart('sixmonth')" id="btn-sixmonth">Últimos 6 meses</button>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="weeklyChart"></canvas>
+        <canvas id="monthlyChart" style="display: none;"></canvas>
+        <canvas id="sixmonthChart" style="display: none;"></canvas>
+    </div>
+</section>
+
 <div class="grid-2">
 <section class="panel">
     <div class="panel-header"><h2>Mais vendidos no mês</h2><a href="{{ url_for('sales.index') }}">Ver vendas</a></div>
@@ -46,11 +62,107 @@
 </div>
 
 <section class="panel">
-    <div class="panel-header"><h2>Estoque baixo</h2><a href="{{ url_for('stock.index') }}">Ver estoque</a></div>
+    <div class="panel-header"><h2>Estoque baixo</h2><a href="{{ url_for('products.index') }}">Ver produtos</a></div>
     {% if low_stock %}
     <table><thead><tr><th>Produto</th><th>Estoque</th><th>Mínimo</th></tr></thead><tbody>
     {% for product in low_stock %}<tr><td>{{ product.name }}</td><td>{{ product.stock_quantity|number_format }}</td><td>{{ product.min_stock|number_format }}</td></tr>{% endfor %}
     </tbody></table>
     {% else %}<p class="muted">Nenhum produto com estoque mínimo configurado em alerta.</p>{% endif %}
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const weeklyLabels = {{ weekly_labels | tojson }};
+const weeklyValues = {{ weekly_values | tojson }};
+const monthlyLabels = {{ monthly_labels | tojson }};
+const monthlyValues = {{ monthly_values | tojson }};
+const sixMonthLabels = {{ six_month_labels | tojson }};
+const sixMonthValues = {{ six_month_values | tojson }};
+
+let weeklyChart, monthlyChart, sixMonthChart;
+
+function createCharts() {
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    };
+
+    weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+            labels: weeklyLabels,
+            datasets: [{
+                label: 'Vendas',
+                data: weeklyValues,
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: commonOptions
+    });
+
+    monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthlyLabels,
+            datasets: [{
+                label: 'Vendas',
+                data: monthlyValues,
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: commonOptions
+    });
+
+    sixMonthChart = new Chart(document.getElementById('sixmonthChart'), {
+        type: 'bar',
+        data: {
+            labels: sixMonthLabels,
+            datasets: [{
+                label: 'Vendas',
+                data: sixMonthValues,
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: commonOptions
+    });
+
+    document.getElementById('btn-weekly').classList.add('primary');
+}
+
+function showChart(chartType) {
+    document.getElementById('weeklyChart').style.display = 'none';
+    document.getElementById('monthlyChart').style.display = 'none';
+    document.getElementById('sixmonthChart').style.display = 'none';
+
+    document.getElementById('btn-weekly').classList.remove('primary');
+    document.getElementById('btn-monthly').classList.remove('primary');
+    document.getElementById('btn-sixmonth').classList.remove('primary');
+
+    document.getElementById(chartType + 'Chart').style.display = 'block';
+    document.getElementById('btn-' + chartType).classList.add('primary');
+}
+
+document.addEventListener('DOMContentLoaded', createCharts);
+</script>
 {% endblock %}

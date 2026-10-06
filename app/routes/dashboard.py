@@ -1,13 +1,97 @@
-from datetime import datetime, time
+from datetime import datetime, timedelta, time
 from decimal import Decimal
 
 from flask import Blueprint, render_template
 from sqlalchemy import func
 
+from app import db
 from app.models import Product, Sale, SaleItem
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
+
+
+def get_weekly_sales():
+    """Vendas por dia da semana (últimos 7 dias)"""
+    now = datetime.now()
+    week_ago = now - timedelta(days=6)
+    day_start = datetime.combine(week_ago.date(), time.min)
+
+    sales = (
+        Sale.query.filter(Sale.sale_date >= day_start)
+        .with_entities(
+            func.date(Sale.sale_date).label("date"),
+            func.sum(Sale.total).label("total"),
+        )
+        .group_by(func.date(Sale.sale_date))
+        .order_by(func.date(Sale.sale_date))
+        .all()
+    )
+
+    days_of_week = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+    sales_by_day = {day: 0 for day in days_of_week}
+
+    for date, total in sales:
+        day_name = days_of_week[date.weekday()]
+        sales_by_day[day_name] = float(total)
+
+    return list(sales_by_day.keys()), list(sales_by_day.values())
+
+
+def get_monthly_sales():
+    """Vendas por dia (último mês)"""
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    day_start = datetime.combine(month_ago.date(), time.min)
+
+    sales = (
+        Sale.query.filter(Sale.sale_date >= day_start)
+        .with_entities(
+            func.date(Sale.sale_date).label("date"),
+            func.sum(Sale.total).label("total"),
+        )
+        .group_by(func.date(Sale.sale_date))
+        .order_by(func.date(Sale.sale_date))
+        .all()
+    )
+
+    labels = []
+    values = []
+    for date, total in sales:
+        labels.append(date.strftime("%d/%m"))
+        values.append(float(total))
+
+    return labels, values
+
+
+def get_6month_sales():
+    """Vendas por mês (últimos 6 meses)"""
+    now = datetime.now()
+    six_months_ago = now - timedelta(days=180)
+    day_start = datetime.combine(six_months_ago.date(), time.min)
+
+    sales = (
+        Sale.query.filter(Sale.sale_date >= day_start)
+        .with_entities(
+            func.strftime("%Y-%m", Sale.sale_date).label("month"),
+            func.sum(Sale.total).label("total"),
+        )
+        .group_by(func.strftime("%Y-%m", Sale.sale_date))
+        .order_by(func.strftime("%Y-%m", Sale.sale_date))
+        .all()
+    )
+
+    months_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    labels = []
+    values = []
+
+    for month_str, total in sales:
+        year, month = map(int, month_str.split("-"))
+        label = f"{months_pt[month - 1]}/{str(year)[-2:]}"
+        labels.append(label)
+        values.append(float(total))
+
+    return labels, values
 
 
 @dashboard_bp.get("/")
@@ -56,6 +140,11 @@ def index():
     )
     low_margin = [p for p in low_margin if p.margin_percent < Decimal("30")] [:8]
 
+    # Dados para gráficos
+    weekly_labels, weekly_values = get_weekly_sales()
+    monthly_labels, monthly_values = get_monthly_sales()
+    six_month_labels, six_month_values = get_6month_sales()
+
     return render_template(
         "dashboard.html",
         today_revenue=today_revenue,
@@ -67,4 +156,10 @@ def index():
         top_products=top_product_rows,
         low_stock=low_stock,
         low_margin=low_margin,
+        weekly_labels=weekly_labels,
+        weekly_values=weekly_values,
+        monthly_labels=monthly_labels,
+        monthly_values=monthly_values,
+        six_month_labels=six_month_labels,
+        six_month_values=six_month_values,
     )
