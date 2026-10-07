@@ -50,7 +50,7 @@ def finalize_production(production_id, sold_items):
         # Atualizar quantidades vendidas e calcular perdas
         for item in production.items:
             product_id = item.product_id
-            sold_quantity = Decimal(str(sold_items.get(str(product_id), 0)))
+            sold_quantity = Decimal(str(int(sold_items.get(str(product_id), 0))))
             item.quantity_sold = sold_quantity
             item.quantity_lost = item.quantity_produced - sold_quantity
 
