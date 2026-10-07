@@ -5,7 +5,7 @@ from flask import Blueprint, render_template
 from sqlalchemy import func
 
 from app import db
-from app.models import Product, Sale, SaleItem, Purchase
+from app.models import Product, Sale, SaleItem, Purchase, Production, ProductionItem
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -235,6 +235,55 @@ def get_6month_purchases():
     return labels, values, total
 
 
+def get_daily_losses():
+    """Perdas diárias (últimos 30 dias) com quantidade e custo"""
+    now = datetime.now()
+    thirty_days_ago = now - timedelta(days=30)
+    day_start = datetime.combine(thirty_days_ago.date(), time.min)
+
+    # Buscar produções finalizadas
+    productions = Production.query.filter(
+        Production.status == "FINALIZADA",
+        Production.finalized_at >= day_start
+    ).all()
+
+    # Agrupar perdas por data
+    losses_by_date = {}
+    for production in productions:
+        prod_date = production.production_date
+        prod_dt = prod_date if isinstance(prod_date, datetime) else datetime.combine(prod_date, time.min)
+
+        for item in production.items:
+            if item.quantity_lost > 0:
+                if prod_dt not in losses_by_date:
+                    losses_by_date[prod_dt] = {"quantity": 0, "cost": 0}
+                losses_by_date[prod_dt]["quantity"] += item.quantity_lost
+                # Calcular custo: quantidade perdida * custo do produto
+                losses_by_date[prod_dt]["cost"] += item.quantity_lost * item.product.cost
+
+    # Gerar labels dos últimos 30 dias
+    labels = []
+    quantities = []
+    costs = []
+    for i in range(29, -1, -1):
+        day_date = now - timedelta(days=i)
+        labels.append(day_date.strftime("%d/%m"))
+
+        day_dt = datetime.combine(day_date.date(), time.min)
+        day_end_dt = datetime.combine(day_date.date(), time.max)
+
+        if day_dt in losses_by_date:
+            quantities.append(float(losses_by_date[day_dt]["quantity"]))
+            costs.append(float(losses_by_date[day_dt]["cost"]))
+        else:
+            quantities.append(0)
+            costs.append(0)
+
+    total_quantity = sum(quantities, 0)
+    total_cost = sum(costs, 0)
+    return labels, quantities, costs, total_quantity, total_cost
+
+
 @dashboard_bp.get("/")
 def index():
     now = datetime.now()
@@ -299,6 +348,9 @@ def index():
     monthly_purchase_labels, monthly_purchase_values, monthly_purchase_total = get_monthly_purchases()
     six_month_purchase_labels, six_month_purchase_values, six_month_purchase_total = get_6month_purchases()
 
+    # Dados para gráfico de perdas
+    loss_labels, loss_quantities, loss_costs, loss_total_quantity, loss_total_cost = get_daily_losses()
+
     return render_template(
         "dashboard.html",
         today_revenue=today_revenue,
@@ -330,4 +382,9 @@ def index():
         six_month_purchase_labels=six_month_purchase_labels,
         six_month_purchase_values=six_month_purchase_values,
         six_month_purchase_total=six_month_purchase_total,
+        loss_labels=loss_labels,
+        loss_quantities=loss_quantities,
+        loss_costs=loss_costs,
+        loss_total_quantity=loss_total_quantity,
+        loss_total_cost=loss_total_cost,
     )

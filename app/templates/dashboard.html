@@ -93,6 +93,19 @@
     </div>
 </section>
 
+<section class="panel">
+    <div class="panel-header">
+        <h2>Perdas diárias (últimos 30 dias)</h2>
+    </div>
+    <div class="chart-container">
+        <canvas id="lossChart"></canvas>
+    </div>
+    <div class="totals" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Total perdido <strong id="loss-total-quantity">0</strong> unidades</span>
+        <span>Custo total <strong id="loss-total-cost">R$ 0,00</strong></span>
+    </div>
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
@@ -114,9 +127,15 @@ const sixMonthPurchaseLabels = {{ six_month_purchase_labels | tojson }};
 const sixMonthPurchaseValues = {{ six_month_purchase_values | tojson }};
 const monthlyPurchaseTotal = {{ monthly_purchase_total | tojson }};
 const sixMonthPurchaseTotal = {{ six_month_purchase_total | tojson }};
+const lossLabels = {{ loss_labels | tojson }};
+const lossQuantities = {{ loss_quantities | tojson }};
+const lossCosts = {{ loss_costs | tojson }};
+const lossTotalQuantity = {{ loss_total_quantity | tojson }};
+const lossTotalCost = {{ loss_total_cost | tojson }};
 
 let weeklyChart, monthlyChart, sixMonthChart;
 let purchaseMonthlyChart, purchaseSixmonthChart;
+let lossChart;
 
 // Function to hide legend when total is zero
 function setLegendVisibility(chart, total) {
@@ -341,6 +360,62 @@ function createCharts() {
     // Set initial legend visibility for purchase charts
     setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
     setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
+
+    // Loss chart
+    const lossOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            datalabels: {
+                display: function(context) {
+                    return lossCosts[context.dataIndex] > 0;
+                },
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                formatter: function(value, context) {
+                    return 'R$ ' + lossCosts[context.dataIndex].toFixed(2);
+                },
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                color: '#dc2626'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value + ' un';
+                    }
+                }
+            }
+        }
+    };
+
+    lossChart = new Chart(document.getElementById('lossChart'), {
+        type: 'bar',
+        data: {
+            labels: lossLabels,
+            datasets: [{
+                label: 'Perdas',
+                data: lossQuantities,
+                backgroundColor: 'rgba(220, 38, 38, 0.8)',
+                borderColor: 'rgba(220, 38, 38, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: lossOptions
+    });
+
+    // Initialize loss totals
+    document.getElementById('loss-total-quantity').textContent = lossTotalQuantity;
+    document.getElementById('loss-total-cost').textContent = 'R$ ' + lossTotalCost.toFixed(2);
 }
 
 function showChart(chartType) {
