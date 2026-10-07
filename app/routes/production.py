@@ -76,7 +76,7 @@ def finalize(production_id):
             sold_items = {}
             for item in production.items:
                 sold_qty = request.form.get(f"sold_{item.id}", "0")
-                sold_items[str(item.product_id)] = Decimal(str(int(sold_qty))) if sold_qty else Decimal("0")
+                sold_items[str(item.product_id)] = Decimal(str(int(sold_qty))) if sold_qty and sold_qty != "0" else Decimal("0")
 
             production, sale = finalize_production(production_id, sold_items)
             flash(f"Produção finalizada! Venda #{sale.id if sale else 'N/A'} registrada.", "success")
