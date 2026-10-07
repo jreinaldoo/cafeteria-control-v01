@@ -53,9 +53,7 @@
                             style="width: 80px; text-align: center;"
                         >
                         <button class="btn small" type="button" onclick="adjustSold({{ item.id }}, 1)" style="width: 28px; height: 28px; padding: 0; font-size: 18px; line-height: 1;">+</button>
-                        <label style="font-size: 12px; margin-left: 8px;">
-                            <input type="checkbox" onchange="toggleAllSold({{ item.id }}, this)" {% if item.quantity_sold == item.quantity_produced %}checked{% endif %}> Tudo vendido
-                        </label>
+                        <button class="btn small" type="button" onclick="toggleAllSold({{ item.id }})" style="width: 32px; height: 28px; padding: 0; font-size: 16px; line-height:1;" id="max-btn-{{ item.id }}" title="Máximo">MAX</button>
                     </div>
                 </td>
                 <td><span id="percent_{{ loop.index }}" class="badge">0%</span></td>
@@ -75,9 +73,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('.sold-input');
 
-    // Inicializar porcentagens
+    // Inicializar porcentagens e botões max
     inputs.forEach(input => {
         updatePercent(input);
+        updateMaxButton(input);
     });
 
     inputs.forEach(input => {
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lossSpan.textContent = loss.toFixed(3).replace(/\.?0+$/, '');
             }
             updatePercent(this);
-            updateCheckbox(this);
+            updateMaxButton(this);
         });
     });
 
@@ -122,13 +121,20 @@ function adjustSold(itemId, delta) {
     input.dispatchEvent(new Event('input'));
 }
 
-function toggleAllSold(itemId, checkbox) {
+function toggleAllSold(itemId) {
     const input = document.querySelector(`input[data-item-id="${itemId}"]`);
     const produced = parseFloat(input.dataset.produced);
-    if (checkbox.checked) {
-        input.value = produced;
-    } else {
+    const sold = parseFloat(input.value) || 0;
+    const btn = document.getElementById('max-btn-' + itemId);
+
+    if (sold === produced) {
         input.value = 0;
+        btn.style.background = '#fff';
+        btn.style.color = '#3f342d';
+    } else {
+        input.value = produced;
+        btn.style.background = '#5c4031';
+        btn.style.color = '#fff';
     }
     input.dispatchEvent(new Event('input'));
 }
@@ -152,11 +158,19 @@ function updatePercent(input) {
     }
 }
 
-function updateCheckbox(input) {
+function updateMaxButton(input) {
     const produced = parseFloat(input.dataset.produced);
     const sold = parseFloat(input.value) || 0;
-    const checkbox = input.parentElement.querySelector('input[type="checkbox"]');
-    checkbox.checked = (sold === produced);
+    const itemId = input.dataset.itemId;
+    const btn = document.getElementById('max-btn-' + itemId);
+
+    if (sold === produced) {
+        btn.style.background = '#5c4031';
+        btn.style.color = '#fff';
+    } else {
+        btn.style.background = '#fff';
+        btn.style.color = '#3f342d';
+    }
 }
 </script>
 {% endblock %}
