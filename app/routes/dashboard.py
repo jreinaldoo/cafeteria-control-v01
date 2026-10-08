@@ -4,7 +4,7 @@ from decimal import Decimal
 from flask import Blueprint, render_template
 
 from app import db
-from app.models import Product, Sale
+from app.models import Sale
 from app.services.production_service import get_open_production
 
 
@@ -33,13 +33,6 @@ def index():
     if month_revenue > 0:
         month_margin = ((month_revenue - month_cost) / month_revenue) * Decimal("100")
 
-    low_stock = (
-        Product.query.filter(Product.active.is_(True))
-        .filter(Product.stock_quantity <= Product.min_stock)
-        .filter(Product.min_stock > 0)
-        .all()
-    )
-
     open_production = get_open_production()
 
     return render_template(
@@ -52,6 +45,5 @@ def index():
         month_cost=month_cost,
         month_profit=month_revenue - month_cost,
         month_margin=month_margin,
-        low_stock=low_stock,
         open_production=open_production,
     )

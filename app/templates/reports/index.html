@@ -64,6 +64,15 @@
 </section>
 
 <section class="panel">
+    <div class="panel-header"><h2>Estoque baixo</h2><a href="{{ url_for('products.index') }}">Ver produtos</a></div>
+    {% if low_stock %}
+    <table><thead><tr><th>Produto</th><th>Estoque</th><th>Mínimo</th></tr></thead><tbody>
+    {% for product in low_stock %}<tr><td>{{ product.name }}</td><td>{{ product.stock_quantity|number_format }}</td><td>{{ product.min_stock|number_format }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Nenhum produto com estoque mínimo configurado em alerta.</p>{% endif %}
+</section>
+
+<section class="panel">
     <div class="panel-header">
         <h2>Compras por período</h2>
         <div class="chart-filters">

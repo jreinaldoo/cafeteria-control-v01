@@ -36,17 +36,26 @@
         <a class="btn primary" href="{{ url_for('production.finalize', production_id=open_production.id) }}">Finalizar</a>
     </div>
     <p><strong>Data:</strong> {{ open_production.production_date.strftime('%d/%m/%Y') }}</p>
-    <p><strong>Itens:</strong> {{ open_production.items|length }}</p>
-    <p class="muted">Esta produção ainda não foi finalizada. Finalize para registrar as vendas e perdas.</p>
+    {% if open_production.notes %}
+    <p><strong>Observações:</strong> {{ open_production.notes }}</p>
+    {% endif %}
+    <table>
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Quantidade produzida</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in open_production.items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity_produced|number_format }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="muted" style="margin-top: 12px;">Esta produção ainda não foi finalizada. Finalize para registrar as vendas e perdas.</p>
 </section>
 {% endif %}
-
-<section class="panel">
-    <div class="panel-header"><h2>Estoque baixo</h2><a href="{{ url_for('products.index') }}">Ver produtos</a></div>
-    {% if low_stock %}
-    <table><thead><tr><th>Produto</th><th>Estoque</th><th>Mínimo</th></tr></thead><tbody>
-    {% for product in low_stock %}<tr><td>{{ product.name }}</td><td>{{ product.stock_quantity|number_format }}</td><td>{{ product.min_stock|number_format }}</td></tr>{% endfor %}
-    </tbody></table>
-    {% else %}<p class="muted">Nenhum produto com estoque mínimo configurado em alerta.</p>{% endif %}
-</section>
 {% endblock %}

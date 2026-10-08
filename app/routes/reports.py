@@ -327,6 +327,17 @@ def get_low_margin_products():
     return result
 
 
+def get_low_stock():
+    """Produtos com estoque baixo"""
+    low_stock = (
+        Product.query.filter(Product.active.is_(True))
+        .filter(Product.stock_quantity <= Product.min_stock)
+        .filter(Product.min_stock > 0)
+        .all()
+    )
+    return low_stock
+
+
 def get_period_comparison(current_start, current_end, previous_start, previous_end):
     """Comparação entre dois períodos"""
     current_sales = Sale.query.filter(Sale.sale_date >= current_start, Sale.sale_date <= current_end).all()
@@ -371,6 +382,7 @@ def index():
     top_products = get_top_products()
     bottom_products = get_bottom_products()
     low_margin_products = get_low_margin_products()
+    low_stock = get_low_stock()
 
     # Comparação mês atual vs mês anterior
     current_month_start = datetime(now.year, now.month, 1)
@@ -417,5 +429,6 @@ def index():
         top_products=top_products,
         bottom_products=bottom_products,
         low_margin_products=low_margin_products,
+        low_stock=low_stock,
         month_comparison=month_comparison,
     )
