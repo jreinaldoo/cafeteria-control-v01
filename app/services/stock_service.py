@@ -26,7 +26,7 @@ def adjust_stock(product_id, quantity, notes=None):
     product = db.session.get(Product, product_id)
     if not product:
         raise ValueError("Produto não encontrado.")
-    quantity = Decimal(str(int(quantity)))
+    quantity = Decimal(str(int(float(quantity))))
     move_stock(product, quantity, "AJUSTE", notes=notes)
     db.session.commit()
     return product

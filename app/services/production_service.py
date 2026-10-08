@@ -16,7 +16,7 @@ def create_production(production_date, items, notes=None):
 
         for item in items:
             product = db.session.get(Product, int(item["product_id"]))
-            quantity = Decimal(str(int(item["quantity"])))
+            quantity = Decimal(str(int(float(item["quantity"]))))
             if not product or not product.active:
                 raise ValueError("Produto inválido ou inativo.")
             if quantity <= 0:
@@ -50,7 +50,7 @@ def finalize_production(production_id, sold_items):
         # Atualizar quantidades vendidas e calcular perdas
         for item in production.items:
             product_id = item.product_id
-            sold_quantity = Decimal(str(int(sold_items.get(str(product_id), 0))))
+            sold_quantity = Decimal(str(int(float(sold_items.get(str(product_id), 0)))))
             item.quantity_sold = sold_quantity
             item.quantity_lost = item.quantity_produced - sold_quantity
 
@@ -106,7 +106,7 @@ def update_production(production_id, items, notes=None):
         # Adicionar novos itens
         for item in items:
             product = db.session.get(Product, int(item["product_id"]))
-            quantity = Decimal(str(int(item["quantity"])))
+            quantity = Decimal(str(int(float(item["quantity"]))))
             if not product or not product.active:
                 raise ValueError("Produto inválido ou inativo.")
             if quantity <= 0:
