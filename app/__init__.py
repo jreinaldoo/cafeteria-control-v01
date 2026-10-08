@@ -44,6 +44,7 @@ def create_app(test_config=None):
     from app.routes.purchases import purchases_bp
     from app.routes.stock import stock_bp
     from app.routes.production import production_bp
+    from app.routes.reports import reports_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(products_bp, url_prefix="/produtos")
@@ -51,6 +52,7 @@ def create_app(test_config=None):
     app.register_blueprint(purchases_bp, url_prefix="/compras")
     app.register_blueprint(stock_bp, url_prefix="/estoque")
     app.register_blueprint(production_bp, url_prefix="/producao")
+    app.register_blueprint(reports_bp, url_prefix="/relatorios")
 
     with app.app_context():
         from app import models  # noqa: F401

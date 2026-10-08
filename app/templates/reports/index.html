@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+{% block title %}Relatórios | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Relatórios</h1>
+        <p>Análise detalhada de vendas, compras, perdas e indicadores.</p>
+    </div>
+</div>
+
+<h2>Comparação: Mês atual vs Mês anterior</h2>
+<div class="cards">
+    <div class="card"><span>Faturamento atual</span><strong>R$ {{ '%.2f'|format(month_comparison.current.revenue) }}</strong></div>
+    <div class="card"><span>Faturamento anterior</span><strong>R$ {{ '%.2f'|format(month_comparison.previous.revenue) }}</strong></div>
+    <div class="card"><span>Lucro atual</span><strong>R$ {{ '%.2f'|format(month_comparison.current.profit) }}</strong></div>
+    <div class="card"><span>Lucro anterior</span><strong>R$ {{ '%.2f'|format(month_comparison.previous.profit) }}</strong></div>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Vendas por período</h2>
+        <div class="chart-filters">
+            <button class="btn small" onclick="showChart('weekly')" id="btn-weekly">Esta semana</button>
+            <button class="btn small" onclick="showChart('monthly')" id="btn-monthly">Último mês</button>
+            <button class="btn small" onclick="showChart('sixmonth')" id="btn-sixmonth">Últimos 6 meses</button>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="weeklyChart"></canvas>
+        <canvas id="monthlyChart" style="display: none;"></canvas>
+        <canvas id="sixmonthChart" style="display: none;"></canvas>
+    </div>
+    <div class="totals" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Total do período <strong id="sales-total">R$ 0,00</strong></span>
+    </div>
+</section>
+
+<div class="grid-2">
+<section class="panel">
+    <div class="panel-header"><h2>Mais vendidos no mês</h2></div>
+    {% if top_products %}
+    <table><thead><tr><th>Produto</th><th>Quantidade</th></tr></thead><tbody>
+    {% for product in top_products %}<tr><td>{{ product.name }}</td><td>{{ product.quantity|number_format }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Ainda não há vendas neste mês.</p>{% endif %}
+</section>
+<section class="panel">
+    <div class="panel-header"><h2>Menos vendidos no mês</h2></div>
+    {% if bottom_products %}
+    <table><thead><tr><th>Produto</th><th>Quantidade</th></tr></thead><tbody>
+    {% for product in bottom_products %}<tr><td>{{ product.name }}</td><td>{{ product.quantity|number_format }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Todos os produtos foram vendidos este mês.</p>{% endif %}
+</section>
+</div>
+
+<section class="panel">
+    <div class="panel-header"><h2>Margem abaixo de 30%</h2></div>
+    {% if low_margin_products %}
+    <table><thead><tr><th>Produto</th><th>Custo</th><th>Preço</th><th>Margem</th></tr></thead><tbody>
+    {% for product in low_margin_products %}<tr><td>{{ product.name }}</td><td>R$ {{ '%.2f'|format(product.cost) }}</td><td>R$ {{ '%.2f'|format(product.sale_price) }}</td><td><span class="badge danger">{{ '%.1f'|format(product.margin) }}%</span></td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Nenhum produto abaixo de 30%.</p>{% endif %}
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Compras por período</h2>
+        <div class="chart-filters">
+            <button class="btn small" onclick="showPurchaseChart('monthly')" id="btn-purchase-monthly">Último mês</button>
+            <button class="btn small" onclick="showPurchaseChart('sixmonth')" id="btn-purchase-sixmonth">Últimos 6 meses</button>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="purchaseMonthlyChart"></canvas>
+        <canvas id="purchaseSixmonthChart" style="display: none;"></canvas>
+    </div>
+    <div class="totals" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Total do período <strong id="purchase-total">R$ 0,00</strong></span>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Perdas diárias (últimos 30 dias)</h2>
+    </div>
+    <div class="chart-container">
+        <canvas id="lossChart"></canvas>
+    </div>
+    <div class="totals" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee8e3;">
+        <span>Total perdido <strong id="loss-total-quantity">0</strong> unidades</span>
+        <span>Custo total <strong id="loss-total-cost">R$ 0,00</strong></span>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+const weeklyLabels = {{ weekly_labels | tojson }};
+const weeklyPix = {{ weekly_pix | tojson }};
+const weeklySumup = {{ weekly_sumup | tojson }};
+const weeklyTotal = {{ weekly_total | tojson }};
+const monthlyLabels = {{ monthly_labels | tojson }};
+const monthlyPix = {{ monthly_pix | tojson }};
+const monthlySumup = {{ monthly_sumup | tojson }};
+const monthlyTotal = {{ monthly_total | tojson }};
+const sixMonthLabels = {{ six_month_labels | tojson }};
+const sixMonthPix = {{ six_month_pix | tojson }};
+const sixMonthSumup = {{ six_month_sumup | tojson }};
+const sixMonthTotal = {{ six_month_total | tojson }};
+const monthlyPurchaseLabels = {{ monthly_purchase_labels | tojson }};
+const monthlyPurchaseValues = {{ monthly_purchase_values | tojson }};
+const sixMonthPurchaseLabels = {{ six_month_purchase_labels | tojson }};
+const sixMonthPurchaseValues = {{ six_month_purchase_values | tojson }};
+const monthlyPurchaseTotal = {{ monthly_purchase_total | tojson }};
+const sixMonthPurchaseTotal = {{ six_month_purchase_total | tojson }};
+const lossLabels = {{ loss_labels | tojson }};
+const lossQuantities = {{ loss_quantities | tojson }};
+const lossCosts = {{ loss_costs | tojson }};
+const lossTotalQuantity = {{ loss_total_quantity | tojson }};
+const lossTotalCost = {{ loss_total_cost | tojson }};
+
+let weeklyChart, monthlyChart, sixMonthChart;
+let purchaseMonthlyChart, purchaseSixmonthChart;
+let lossChart;
+
+function setLegendVisibility(chart, total) {
+    chart.options.plugins.legend.display = total > 0;
+    chart.update();
+}
+
+function createCharts() {
+    Chart.register(ChartDataLabels);
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += 'R$ ' + context.parsed.y.toFixed(2);
+                        }
+                        return label;
+                    }
+                }
+            },
+            datalabels: {
+                display: function(context) {
+                    return context.datasetIndex === 1;
+                },
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                formatter: function(value, context) {
+                    const pix = context.chart.data.datasets[0].data[context.dataIndex];
+                    const sumup = context.chart.data.datasets[1].data[context.dataIndex];
+                    const total = pix + sumup;
+                    return 'R$ ' + total.toFixed(2);
+                },
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                color: '#26221f'
+            }
+        },
+        scales: {
+            x: {
+                stacked: true
+            },
+            y: {
+                stacked: true,
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    };
+
+    weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+            labels: weeklyLabels,
+            datasets: [
+                {
+                    label: 'PIX',
+                    data: weeklyPix,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'SumUp',
+                    data: weeklySumup,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: commonOptions
+    });
+
+    monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthlyLabels,
+            datasets: [
+                {
+                    label: 'PIX',
+                    data: monthlyPix,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'SumUp',
+                    data: monthlySumup,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: commonOptions
+    });
+
+    sixMonthChart = new Chart(document.getElementById('sixmonthChart'), {
+        type: 'bar',
+        data: {
+            labels: sixMonthLabels,
+            datasets: [
+                {
+                    label: 'PIX',
+                    data: sixMonthPix,
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'SumUp',
+                    data: sixMonthSumup,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: commonOptions
+    });
+
+    document.getElementById('btn-weekly').classList.add('primary');
+
+    updateSalesTotal(weeklyTotal);
+
+    setLegendVisibility(weeklyChart, weeklyTotal);
+    setLegendVisibility(monthlyChart, monthlyTotal);
+    setLegendVisibility(sixMonthChart, sixMonthTotal);
+
+    const purchaseOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            datalabels: {
+                display: true,
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                formatter: function(value) {
+                    return 'R$ ' + value.toFixed(2);
+                },
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                color: '#26221f'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    };
+
+    purchaseMonthlyChart = new Chart(document.getElementById('purchaseMonthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthlyPurchaseLabels,
+            datasets: [{
+                label: 'Compras',
+                data: monthlyPurchaseValues,
+                backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                borderColor: 'rgba(249, 115, 22, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: purchaseOptions
+    });
+
+    purchaseSixmonthChart = new Chart(document.getElementById('purchaseSixmonthChart'), {
+        type: 'bar',
+        data: {
+            labels: sixMonthPurchaseLabels,
+            datasets: [{
+                label: 'Compras',
+                data: sixMonthPurchaseValues,
+                backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                borderColor: 'rgba(249, 115, 22, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: purchaseOptions
+    });
+
+    document.getElementById('btn-purchase-monthly').classList.add('primary');
+
+    updatePurchaseTotal(monthlyPurchaseTotal);
+
+    setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
+    setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
+
+    const lossOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            datalabels: {
+                display: function(context) {
+                    return lossCosts[context.dataIndex] > 0;
+                },
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                formatter: function(value, context) {
+                    return 'R$ ' + lossCosts[context.dataIndex].toFixed(2);
+                },
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                color: '#dc2626'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value + ' un';
+                    }
+                }
+            }
+        }
+    };
+
+    lossChart = new Chart(document.getElementById('lossChart'), {
+        type: 'bar',
+        data: {
+            labels: lossLabels,
+            datasets: [{
+                label: 'Perdas',
+                data: lossQuantities,
+                backgroundColor: 'rgba(220, 38, 38, 0.8)',
+                borderColor: 'rgba(220, 38, 38, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: lossOptions
+    });
+
+    document.getElementById('loss-total-quantity').textContent = lossTotalQuantity;
+    document.getElementById('loss-total-cost').textContent = 'R$ ' + lossTotalCost.toFixed(2);
+}
+
+function showChart(chartType) {
+    document.getElementById('weeklyChart').style.display = 'none';
+    document.getElementById('monthlyChart').style.display = 'none';
+    document.getElementById('sixmonthChart').style.display = 'none';
+
+    document.getElementById('btn-weekly').classList.remove('primary');
+    document.getElementById('btn-monthly').classList.remove('primary');
+    document.getElementById('btn-sixmonth').classList.remove('primary');
+
+    document.getElementById(chartType + 'Chart').style.display = 'block';
+    document.getElementById('btn-' + chartType).classList.add('primary');
+
+    let total = 0;
+    let chart = null;
+    if (chartType === 'weekly') {
+        total = weeklyTotal;
+        chart = weeklyChart;
+    } else if (chartType === 'monthly') {
+        total = monthlyTotal;
+        chart = monthlyChart;
+    } else if (chartType === 'sixmonth') {
+        total = sixMonthTotal;
+        chart = sixMonthChart;
+    }
+    updateSalesTotal(total);
+    setLegendVisibility(chart, total);
+}
+
+function updateSalesTotal(total) {
+    document.getElementById('sales-total').textContent = 'R$ ' + total.toFixed(2);
+}
+
+function showPurchaseChart(chartType) {
+    document.getElementById('purchaseMonthlyChart').style.display = 'none';
+    document.getElementById('purchaseSixmonthChart').style.display = 'none';
+
+    document.getElementById('btn-purchase-monthly').classList.remove('primary');
+    document.getElementById('btn-purchase-sixmonth').classList.remove('primary');
+
+    if (chartType === 'monthly') {
+        document.getElementById('purchaseMonthlyChart').style.display = 'block';
+        document.getElementById('btn-purchase-monthly').classList.add('primary');
+        updatePurchaseTotal(monthlyPurchaseTotal);
+        setLegendVisibility(purchaseMonthlyChart, monthlyPurchaseTotal);
+    } else if (chartType === 'sixmonth') {
+        document.getElementById('purchaseSixmonthChart').style.display = 'block';
+        document.getElementById('btn-purchase-sixmonth').classList.add('primary');
+        updatePurchaseTotal(sixMonthPurchaseTotal);
+        setLegendVisibility(purchaseSixmonthChart, sixMonthPurchaseTotal);
+    }
+}
+
+function updatePurchaseTotal(total) {
+    document.getElementById('purchase-total').textContent = 'R$ ' + total.toFixed(2);
+}
+
+document.addEventListener('DOMContentLoaded', createCharts);
+</script>
+{% endblock %}
