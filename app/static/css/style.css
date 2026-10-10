@@ -52,4 +52,21 @@ input:focus, select:focus { outline:2px solid #d9c7b8; border-color:#9c7962; }
 .totals { display:flex; justify-content:flex-end; gap:28px; flex-wrap:wrap; margin-top:18px; padding-top:15px; border-top:1px solid #eee8e3; }
 .totals span { display:grid; gap:3px; color:#746c66; }
 .totals strong { color:#2c2724; font-size:18px; }
-@media (max-width: 800px) { .topbar { align-items:flex-start; flex-direction:column; } .cards, .grid-2, .form-grid { grid-template-columns:1fr; } .page-header { flex-direction:column; } .sale-row { grid-template-columns:1fr; } .production-row { grid-template-columns:1fr; } table { display:block; overflow-x:auto; white-space:nowrap; } }
+
+/* Recipe Item Form Styles */
+.recipe-item-form { max-width: 600px; }
+.product-info-card { background: #f9f7f4; border-radius: 8px; padding: 16px; margin-bottom: 20px; border: 1px solid #e6dfd9; }
+.info-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.info-item { display: flex; flex-direction: column; gap: 4px; }
+.info-label { font-size: 12px; color: #746c66; font-weight: 600; }
+.info-value { font-size: 14px; color: #2c2724; font-weight: 500; }
+.quantity-section { margin-bottom: 20px; }
+.quantity-input-group { display: flex; align-items: center; gap: 10px; }
+.quantity-input-group input { flex: 1; }
+.unit-badge { background: #5c4031; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; min-width: 50px; text-align: center; }
+.cost-preview { background: linear-gradient(135deg, #5c4031 0%, #7a5a46 100%); color: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 2px 8px rgba(92, 64, 49, 0.2); }
+.cost-label { font-size: 13px; opacity: 0.9; margin-bottom: 8px; }
+.cost-value { font-size: 28px; font-weight: 700; }
+.recipe-item-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 800px) { .topbar { align-items:flex-start; flex-direction:column; } .cards, .grid-2, .form-grid { grid-template-columns:1fr; } .page-header { flex-direction:column; } .sale-row { grid-template-columns:1fr; } .production-row { grid-template-columns:1fr; } table { display:block; overflow-x:auto; white-space:nowrap; } .info-row { grid-template-columns: 1fr; } }
