@@ -89,9 +89,50 @@ Antes de executar qualquer comando que possa causar perda de dados:
 - Nunca mais deletar banco sem confirmação explícita
 - Usar migrations ao invés de deletar/recriar
 
+## 🚀 Flask-Migrate Implementado (2026-10-10)
+
+### ✅ Sistema de Migrations Ativo
+- Flask-Migrate está configurado e funcionando
+- Diretório `migrations/` contém o histórico de mudanças
+- Use migrations para TODAS as mudanças estruturais no banco
+
+### 📝 Como usar migrations:
+
+**1. Após alterar models:**
+```bash
+source .venv/bin/activate
+flask db migrate -m "Descrição da mudança"
+```
+
+**2. Aplicar migration:**
+```bash
+flask db upgrade
+```
+
+**3. Verificar status:**
+```bash
+flask db current
+flask db history
+```
+
+**4. Reverter migration (se necessário):**
+```bash
+flask db downgrade
+```
+
+### ✅ NUNCA mais deletar o banco para mudanças estruturais
+- Use `flask db migrate` e `flask db upgrade`
+- Isso preserva todos os dados existentes
+- Se precisar começar do zero, THEN pode deletar o banco
+
+### ⚠️ Regras Atualizadas:
+- Ao alterar models: SEMPRE usar migrations
+- Backup automático ainda é boa prática antes de migrations complexas
+- Commits de migrations devem ir para o Git (versionam o esquema)
+
 ## 🚀 Melhorias Futuras
 
-1. Implementar Flask-Migrate ou Alembic para migrations
+1. ✅ Flask-Migrate ou Alembic para migrations (IMPLEMENTADO)
 2. Adicionar script de backup automático
 3. Considerar PostgreSQL/MySQL para produção (com backups automáticos)
 4. Adicionar sistema de snapshots do banco

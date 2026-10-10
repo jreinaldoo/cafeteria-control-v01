@@ -7,6 +7,7 @@ Aplicação local para controle de produtos, custos, vendas, compras e estoque d
 - Python 3.11+
 - Flask
 - Flask-SQLAlchemy
+- Flask-Migrate (para versionamento do banco)
 - SQLite
 - Jinja2
 - HTML/CSS/JavaScript
@@ -57,9 +58,49 @@ Na primeira execução, os produtos informados no projeto são cadastrados autom
 6. Backup automático do SQLite.
 7. Ficha técnica para produtos produzidos pela cafeteria.
 
+## Sistema de Migrations (Flask-Migrate)
+
+⚠️ **IMPORTANTE**: O projeto usa Flask-Migrate para versionar o banco de dados. SEMPRE use migrations para mudanças estruturais - NUNCA delete o banco de dados para recriar tabelas.
+
+### Como usar migrations:
+
+**1. Após alterar models (adicionar/remover colunas, tabelas):**
+```bash
+source .venv/bin/activate
+flask db migrate -m "Descrição da mudança"
+```
+
+**2. Aplicar migration ao banco:**
+```bash
+flask db upgrade
+```
+
+**3. Verificar status das migrations:**
+```bash
+flask db current    # Mostra migration atual
+flask db history     # Mostra histórico de migrations
+```
+
+**4. Reverter migration (se necessário):**
+```bash
+flask db downgrade
+```
+
+### Quando criar migrations:
+- Sempre que alterar qualquer model (add/remove colunas, tabelas)
+- Sempre que mudar tipos de dados
+- Sempre que adicionar/alterar relações entre models
+
+### Vantagens do sistema de migrations:
+- ✅ Preserva todos os dados existentes
+- ✅ Histórico completo de mudanças
+- ✅ Pode reverter mudanças se necessário
+- ✅ Equipes podem manter bancos sincronizados
+- ✅ Nenhuma perda de dados ao evoluir o schema
+
 ## Backup do Banco de Dados
 
-⚠️ **IMPORTANTE**: O banco de dados (`instance/cafeteria.db`) NÃO é versionado no Git (está no `.gitignore`). Isso significa que você DEVE fazer backup manualmente antes de qualquer operação que possa alterar a estrutura do banco.
+⚠️ **IMPORTANTE**: O banco de dados (`instance/cafeteria.db`) NÃO é versionado no Git (está no `.gitignore`). Com Flask-Migrate, as migrations (versões do schema) são versionadas, mas os DADOS não.
 
 ### Como fazer backup:
 
@@ -73,10 +114,9 @@ cp instance/cafeteria.db ~/backups/cafeteria.db.$(date +%Y%m%d_%H%M%S)
 
 ### Quando fazer backup:
 
-- Antes de qualquer mudança no código que altere models (tabelas, colunas)
-- Antes de executar migrations ou alterações de schema
-- Antes de atualizar o Flask-SQLAlchemy ou outras dependências
+- Antes de migrations complexas ou arriscadas
 - Periodicamente (recomendado: diário ou semanal)
+- Antes de grandes alterações nos dados
 
 ### Restaurar backup:
 
