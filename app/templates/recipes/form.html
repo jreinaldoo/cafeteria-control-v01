@@ -157,13 +157,12 @@ function calculateCost() {
     const cost = parseFloat(selectedOption.getAttribute('data-cost') || 0);
     const quantity = parseFloat(document.getElementById('quantity_used').value || 0);
     const hasProduct = select.value !== '';
-    const hasQuantity = quantity > 0;
 
     // Show/hide cost preview
     const costPreview = document.getElementById('cost-preview');
     const costValue = document.getElementById('estimated-cost');
 
-    if (hasProduct && hasQuantity && unitQuantity > 0 && cost > 0) {
+    if (hasProduct && quantity > 0 && unitQuantity > 0 && cost > 0) {
         const ratio = quantity / unitQuantity;
         const estimatedCost = ratio * cost;
         costValue.textContent = 'R$ ' + estimatedCost.toFixed(2);
@@ -173,7 +172,7 @@ function calculateCost() {
     }
 
     // Enable/disable button
-    document.getElementById('add-item-btn').disabled = !(hasProduct && hasQuantity);
+    document.getElementById('add-item-btn').disabled = !(hasProduct && quantity > 0);
 }
 
 // Initialize on page load
