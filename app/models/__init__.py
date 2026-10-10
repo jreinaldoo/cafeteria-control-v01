@@ -4,6 +4,7 @@ from app.models.sale import Sale, SaleItem
 from app.models.purchase import Purchase, PurchaseItem
 from app.models.stock import StockMovement
 from app.models.production import Production, ProductionItem
+from app.models.recipe import Recipe, RecipeItem
 
 __all__ = [
     "Category",
@@ -15,4 +16,6 @@ __all__ = [
     "StockMovement",
     "Production",
     "ProductionItem",
+    "Recipe",
+    "RecipeItem",
 ]

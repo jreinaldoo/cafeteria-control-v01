@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Receitas | Cafeteria Control{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Receitas</h1>
+        <p>Gerencie suas receitas e calcule o custo por item.</p>
+    </div>
+    <div class="actions">
+        <a class="btn primary" href="{{ url_for('recipes.new') }}">+ Nova receita</a>
+    </div>
+</div>
+
+{% if recipes %}
+<table>
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Custo total</th>
+            <th>Itens</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for recipe in recipes %}
+        <tr>
+            <td><strong>{{ recipe.name }}</strong></td>
+            <td>{{ recipe.description or '-' }}</td>
+            <td>R$ {{ '%.2f'|format(recipe.total_cost) }}</td>
+            <td>{{ recipe.items|length }}</td>
+            <td>
+                <a href="{{ url_for('recipes.edit', recipe_id=recipe.id) }}">Editar</a>
+                <form method="POST" action="{{ url_for('recipes.delete_recipe_route', recipe_id=recipe.id) }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta receita?');">
+                    <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; text-decoration: underline;">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="muted">Nenhuma receita cadastrada. Crie sua primeira receita!</p>
+{% endif %}
+{% endblock %}
