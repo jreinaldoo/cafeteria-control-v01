@@ -14,6 +14,8 @@ class Product(db.Model):
     sale_price = db.Column(db.Numeric(10, 2), nullable=False, default=Decimal("0.00"))
     stock_quantity = db.Column(db.Numeric(10, 3), nullable=False, default=Decimal("0"))
     min_stock = db.Column(db.Numeric(10, 3), nullable=False, default=Decimal("0"))
+    unit = db.Column(db.String(20), nullable=False, default="un")  # un, g, kg, ml, L, etc.
+    unit_quantity = db.Column(db.Numeric(10, 3), nullable=False, default=Decimal("1"))  # Quantidade por unidade de compra
     active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header"><div><h1>Produtos</h1><p>Cadastro, custo, preço, margem e estoque.</p></div><a class="btn primary" href="{{ url_for('products.new') }}">+ Novo produto</a></div>
 <section class="panel">
-<table><thead><tr><th>Produto</th><th>Categoria</th><th>Custo</th><th>Venda</th><th>Lucro</th><th>Margem</th><th>Estoque</th><th>Mínimo</th><th>Status</th><th></th></tr></thead><tbody>
+<table><thead><tr><th>Produto</th><th>Categoria</th><th>Custo</th><th>Venda</th><th>Lucro</th><th>Margem</th><th>Unidade</th><th>Qtd/unid</th><th>Estoque</th><th>Mínimo</th><th>Status</th><th></th></tr></thead><tbody>
 {% for product in products %}
 <tr>
 <td><strong>{{ product.name }}</strong>{% if not product.active %}<span class="muted"> (inativo)</span>{% endif %}</td>
@@ -12,6 +12,8 @@
 <td>R$ {{ '%.2f'|format(product.sale_price) }}</td>
 <td>R$ {{ '%.2f'|format(product.gross_profit) }}</td>
 <td><span class="badge {% if product.margin_percent < 30 %}danger{% elif product.margin_percent < 40 %}warning{% else %}success{% endif %}">{{ '%.1f'|format(product.margin_percent) }}%</span></td>
+<td>{{ product.unit }}</td>
+<td>{{ product.unit_quantity }}</td>
 <td><strong>{{ product.stock_quantity|number_format }}</strong></td>
 <td>{{ product.min_stock|number_format }}</td>
 <td>{% if product.min_stock > 0 and product.stock_quantity <= product.min_stock %}<span class="badge danger">Baixo</span>{% else %}<span class="badge success">OK</span>{% endif %}</td>

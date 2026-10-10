@@ -36,10 +36,10 @@ class RecipeItem(db.Model):
     @property
     def calculated_cost(self):
         """Calcula o custo proporcional do item na receita"""
-        if not self.product or self.product.stock_quantity == 0:
+        if not self.product or self.product.unit_quantity == 0:
             return 0
-        # Custo proporcional: (quantidade_usada / quantidade_estoque) * custo_total
-        ratio = float(self.quantity_used) / float(self.product.stock_quantity)
+        # Custo proporcional: (quantidade_usada / quantidade_por_unidade) * custo_total
+        ratio = float(self.quantity_used) / float(self.product.unit_quantity)
         return ratio * float(self.product.cost)
 
     def __repr__(self):

@@ -40,7 +40,7 @@
             <tr>
                 <th>Produto</th>
                 <th>Quantidade usada</th>
-                <th>Estoque disponível</th>
+                <th>Quantidade por unidade</th>
                 <th>Custo unitário</th>
                 <th>Custo proporcional</th>
                 <th>Ações</th>
@@ -50,8 +50,8 @@
             {% for item in recipe.items %}
             <tr>
                 <td>{{ item.product.name }}</td>
-                <td>{{ item.quantity_used }}g</td>
-                <td>{{ item.product.stock_quantity }}g</td>
+                <td>{{ item.quantity_used }}{{ item.product.unit }}</td>
+                <td>{{ item.product.unit_quantity }}{{ item.product.unit }}</td>
                 <td>R$ {{ '%.2f'|format(item.product.cost) }}</td>
                 <td><strong>R$ {{ '%.2f'|format(item.calculated_cost) }}</strong></td>
                 <td>
@@ -76,24 +76,30 @@
     <form method="POST" action="{{ url_for('recipes.add_item', recipe_id=recipe.id) }}">
         <div class="form-group">
             <label for="product_id">Produto *</label>
-            <select id="product_id" name="product_id" required onchange="updateStockInfo()">
+            <select id="product_id" name="product_id" required onchange="updateProductInfo()">
                 <option value="">Selecione um produto</option>
                 {% for product in products %}
                 <option value="{{ product.id }}"
-                        data-stock="{{ product.stock_quantity }}"
+                        data-unit="{{ product.unit }}"
+                        data-unit-quantity="{{ product.unit_quantity }}"
                         data-cost="{{ product.cost }}">
-                    {{ product.name }} ({{ product.stock_quantity }}g)
+                    {{ product.name }} ({{ product.unit_quantity }}{{ product.unit }})
                 </option>
                 {% endfor %}
             </select>
         </div>
         <div class="form-group">
-            <label for="quantity_used">Quantidade usada (g) *</label>
+            <label for="quantity_used">Quantidade usada *</label>
             <input type="number" id="quantity_used" name="quantity_used" step="0.1" min="0.1" required onchange="calculateCost()">
+            <span id="unit-display" style="margin-left: 8px; color: #666;"></span>
         </div>
         <div class="form-group">
-            <label>Estoque disponível:</label>
-            <span id="stock-info">-</span>
+            <label>Unidade:</label>
+            <span id="unit-info">-</span>
+        </div>
+        <div class="form-group">
+            <label>Quantidade por unidade:</label>
+            <span id="unit-quantity-info">-</span>
         </div>
         <div class="form-group">
             <label>Custo do produto:</label>
@@ -109,26 +115,29 @@
 {% endif %}
 
 <script>
-function updateStockInfo() {
+function updateProductInfo() {
     const select = document.getElementById('product_id');
     const selectedOption = select.options[select.selectedIndex];
-    const stock = selectedOption.getAttribute('data-stock');
+    const unit = selectedOption.getAttribute('data-unit');
+    const unitQuantity = selectedOption.getAttribute('data-unit-quantity');
     const cost = selectedOption.getAttribute('data-cost');
 
-    document.getElementById('stock-info').textContent = stock ? stock + 'g' : '-';
+    document.getElementById('unit-info').textContent = unit || '-';
+    document.getElementById('unit-quantity-info').textContent = unitQuantity ? unitQuantity + unit : '-';
     document.getElementById('cost-info').textContent = cost ? 'R$ ' + parseFloat(cost).toFixed(2) : '-';
+    document.getElementById('unit-display').textContent = unit ? '(' + unit + ')' : '';
     calculateCost();
 }
 
 function calculateCost() {
     const select = document.getElementById('product_id');
     const selectedOption = select.options[select.selectedIndex];
-    const stock = parseFloat(selectedOption.getAttribute('data-stock') || 0);
+    const unitQuantity = parseFloat(selectedOption.getAttribute('data-unit-quantity') || 0);
     const cost = parseFloat(selectedOption.getAttribute('data-cost') || 0);
     const quantity = parseFloat(document.getElementById('quantity_used').value || 0);
 
-    if (stock > 0 && cost > 0 && quantity > 0) {
-        const ratio = quantity / stock;
+    if (unitQuantity > 0 && cost > 0 && quantity > 0) {
+        const ratio = quantity / unitQuantity;
         const estimatedCost = ratio * cost;
         document.getElementById('estimated-cost').textContent = 'R$ ' + estimatedCost.toFixed(2);
     } else {

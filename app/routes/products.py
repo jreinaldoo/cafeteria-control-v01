@@ -29,12 +29,16 @@ def new():
             if Product.query.filter_by(name=name).first():
                 flash("Já existe um produto com esse nome.", "error")
                 return render_template("products/form.html", product=None, categories=categories)
+            unit = request.form.get("unit", "un")
+            unit_quantity = Decimal(request.form.get("unit_quantity", "1").replace(",", "."))
             product = Product(
                 name=name,
                 category_id=category_id,
                 cost=cost,
                 sale_price=sale_price,
                 min_stock=min_stock,
+                unit=unit,
+                unit_quantity=unit_quantity,
             )
             db.session.add(product)
             db.session.commit()
@@ -57,6 +61,8 @@ def edit(product_id):
             product.cost = Decimal(request.form["cost"].replace(",", "."))
             product.sale_price = Decimal(request.form["sale_price"].replace(",", "."))
             product.min_stock = Decimal(request.form.get("min_stock", "0").replace(",", "."))
+            product.unit = request.form.get("unit", "un")
+            product.unit_quantity = Decimal(request.form.get("unit_quantity", "1").replace(",", "."))
             product.active = "active" in request.form
             db.session.commit()
             flash("Produto atualizado.", "success")
