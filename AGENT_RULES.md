@@ -66,9 +66,10 @@ Antes de executar qualquer comando que possa causar perda de dados:
 
 ### Banco de Dados SQLite:
 - Localização: `instance/cafeteria.db`
-- NÃO versionado no Git (está no .gitignore)
+| **AGORA versionado no Git** (removido do .gitignore após perda de dados de 10/10)
+|- Isso permite rollback via Git em caso de problemas
 - Única fonte de verdade dos dados
-- Perda = dados irrecuperáveis sem backup
+- Ainda recomendado fazer backups locais como segurança adicional
 
 ### Produtos e Vendas:
 - Produtos têm estoque que é alterado automaticamente

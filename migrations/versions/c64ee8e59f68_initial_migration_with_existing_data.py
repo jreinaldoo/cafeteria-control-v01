@@ -1,8 +1,8 @@
-"""Add recipes tables only
+"""Initial migration with existing data
 
-Revision ID: def8273c4f4f
-Revises: 79800d3bbfc5
-Create Date: 2026-10-10 16:24:58.227327
+Revision ID: c64ee8e59f68
+Revises: 
+Create Date: 2026-10-10 16:33:57.975943
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'def8273c4f4f'
-down_revision = '79800d3bbfc5'
+revision = 'c64ee8e59f68'
+down_revision = None
 branch_labels = None
 depends_on = None
 
